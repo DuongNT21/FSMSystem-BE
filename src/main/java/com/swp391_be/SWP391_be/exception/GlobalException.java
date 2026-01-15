@@ -1,7 +1,7 @@
 package com.swp391_be.SWP391_be.exception;
 
 
-import com.swp391_be.SWP391_be.dto.response.BaseResponse;
+import com.swp391_be.SWP391_be.dto.response.user.BaseResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;

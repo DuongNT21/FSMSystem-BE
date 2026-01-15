@@ -1,4 +1,4 @@
-package com.swp391_be.SWP391_be.dto.response;
+package com.swp391_be.SWP391_be.dto.response.user;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
