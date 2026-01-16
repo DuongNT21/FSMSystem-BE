@@ -12,7 +12,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @Getter
 @Setter
-public class Roles extends BaseEntity {
+public class Role extends BaseEntity {
     private String roleName;
 
     @OneToOne(mappedBy = "role")

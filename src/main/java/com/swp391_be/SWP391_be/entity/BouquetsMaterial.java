@@ -3,6 +3,7 @@ package com.swp391_be.SWP391_be.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -14,14 +15,16 @@ import lombok.Setter;
 @AllArgsConstructor
 @Getter
 @Setter
-public class Employee extends BaseEntity {
-    @OneToOne
-    @JoinColumn(name = "user_id", nullable = false)
+public class BouquetsMaterial extends BaseEntity{
+    private int quantity;
+
+    @ManyToOne
+    @JoinColumn(name = "bouquet_id", nullable = false)
     @JsonIgnore
-    private User user;
+    private Bouquet bouquet;
 
     @OneToOne
-    @JoinColumn(name = "role_id", nullable = false)
+    @JoinColumn(name = "raw_material_id", nullable = false)
     @JsonIgnore
-    private Role role;
+    private RawMaterial rawMaterial;
 }

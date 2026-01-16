@@ -2,6 +2,7 @@ package com.swp391_be.SWP391_be.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Entity;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -30,6 +31,9 @@ public class User extends BaseEntity implements UserDetails {
 
     @OneToOne(mappedBy = "user")
     private Employee employee;
+
+    @OneToMany(mappedBy = "user")
+    List<RawMaterial> rawMaterials;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
