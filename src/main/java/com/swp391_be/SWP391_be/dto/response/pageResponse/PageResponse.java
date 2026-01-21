@@ -45,7 +45,7 @@ public class PageResponse<T> {
 
     return new PageResponse<>(
         data,
-        page.getNumber() + 1,
+        page.getNumber(),
         page.getSize(),
         page.getTotalElements(),
         page.getTotalPages(),
