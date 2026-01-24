@@ -1,4 +1,4 @@
-package com.swp391_be.SWP391_be.dto.response;
+package com.swp391_be.SWP391_be.dto.request.bouquet;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,8 +9,8 @@ import lombok.Setter;
 @AllArgsConstructor
 @Getter
 @Setter
-public class BaseResponse<T> {
+public class CreateBouquetRequest {
+    private String name;
     private int status;
-    private String message;
-    private T data;
+    private float price;
 }
