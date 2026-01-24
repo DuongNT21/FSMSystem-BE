@@ -46,7 +46,7 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/users","/api/auth","/swagger-ui/**", "/v3/api-docs/**" ,"/api/bouquet/**").permitAll()
+                        .requestMatchers("/api/users","/api/auth","/swagger-ui/**", "/v3/api-docs/**", "/api/register", "/api/auth").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/google").permitAll()
                         .anyRequest().authenticated()
                 )
