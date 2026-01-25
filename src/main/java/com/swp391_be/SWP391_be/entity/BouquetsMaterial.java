@@ -23,7 +23,7 @@ public class BouquetsMaterial extends BaseEntity{
     @JsonIgnore
     private Bouquet bouquet;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "raw_material_id", nullable = false)
     @JsonIgnore
     private RawMaterial rawMaterial;
