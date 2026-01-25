@@ -47,7 +47,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/bouquets/**").permitAll()
-                        .requestMatchers("/api/users","/api/auth","/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                        .requestMatchers("/api/users","/api/auth","/swagger-ui/**", "/v3/api-docs/**", "/api/register", "/api/auth").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/google").permitAll()
                         .anyRequest().authenticated()
                 )

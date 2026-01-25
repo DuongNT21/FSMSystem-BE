@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.swp391_be.SWP391_be.dto.request.bouquet.CreateBouquetRequest;
 import com.swp391_be.SWP391_be.dto.request.bouquet.GetBouquetCriteriaRequest;
 import com.swp391_be.SWP391_be.dto.request.bouquet.UpdateBouquetRequest;
+import com.swp391_be.SWP391_be.dto.response.BaseResponse;
 import com.swp391_be.SWP391_be.dto.response.bouquet.BouquetListResponse;
 import com.swp391_be.SWP391_be.dto.response.pageResponse.PageResponse;
 import com.swp391_be.SWP391_be.entity.Bouquet;
@@ -13,7 +14,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import com.swp391_be.SWP391_be.service.IBouquetService;
 
@@ -22,9 +22,13 @@ import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 
 @RestController
 @RequestMapping("/api/bouquets")
@@ -33,13 +37,23 @@ public class BouquetController {
   private final IBouquetService bouquetService;
 
   @PostMapping("/create")
-  public Bouquet create(@RequestBody CreateBouquetRequest request) {
-    return bouquetService.createBouquet(request);
+  public ResponseEntity<BaseResponse<Bouquet>> create(@RequestBody CreateBouquetRequest request) {
+    Bouquet response = bouquetService.createBouquet(request);
+    BaseResponse<Bouquet> baseResponse = new BaseResponse<>();
+    baseResponse.setStatus(HttpStatus.CREATED.value());
+    baseResponse.setMessage("Create Bouquet");
+    baseResponse.setData(response);
+    return ResponseEntity.status(HttpStatus.CREATED).body(baseResponse);
   }
 
-  @PostMapping("/update")
-  public Bouquet update(@RequestBody UpdateBouquetRequest request) {
-    return bouquetService.updateBouquet(request);
+  @PutMapping("/update")
+  public ResponseEntity<BaseResponse<Bouquet>> update(@RequestBody UpdateBouquetRequest request) {
+    Bouquet response = bouquetService.updateBouquet(request);
+    BaseResponse<Bouquet> baseResponse = new BaseResponse<>();
+    baseResponse.setStatus(HttpStatus.CREATED.value());
+    baseResponse.setMessage("Update Bouquet");
+    baseResponse.setData(response);
+    return ResponseEntity.status(HttpStatus.CREATED).body(baseResponse);
   }
 
   @GetMapping("/get")
@@ -64,7 +78,7 @@ public class BouquetController {
   }
 
   @Operation(summary = "Delete bouquet by id")
-  @GetMapping("/delete")
+  @DeleteMapping("/delete")
   public void delete(@RequestParam int id) {
     bouquetService.deleteBouquet(id);
   }
