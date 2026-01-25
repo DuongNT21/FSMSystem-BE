@@ -22,11 +22,6 @@ public class RawMaterial extends BaseEntity {
     private int quantity;
     private float importPrice;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    @JsonIgnore
-    private User user;
-
     @OneToMany(mappedBy = "rawMaterial")
     private List<BouquetsMaterial> bouquetsMaterials;
 }
