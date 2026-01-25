@@ -22,9 +22,11 @@ import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 
 @RestController
 @RequestMapping("/api/bouquets")
@@ -37,7 +39,7 @@ public class BouquetController {
     return bouquetService.createBouquet(request);
   }
 
-  @PostMapping("/update")
+  @PutMapping("/update")
   public Bouquet update(@RequestBody UpdateBouquetRequest request) {
     return bouquetService.updateBouquet(request);
   }
@@ -64,7 +66,7 @@ public class BouquetController {
   }
 
   @Operation(summary = "Delete bouquet by id")
-  @GetMapping("/delete")
+  @DeleteMapping("/delete")
   public void delete(@RequestParam int id) {
     bouquetService.deleteBouquet(id);
   }
