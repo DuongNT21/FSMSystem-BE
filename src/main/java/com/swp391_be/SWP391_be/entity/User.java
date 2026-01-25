@@ -1,9 +1,7 @@
 package com.swp391_be.SWP391_be.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.Entity;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,7 +10,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 
@@ -26,6 +23,11 @@ public class User extends BaseEntity implements UserDetails {
     private String email;
     private String password;
 
+    @ManyToOne
+    @JoinColumn(name = "role_id", nullable = false)
+    @JsonIgnore
+    private Role role;
+
     @OneToOne(mappedBy = "user")
     private UserProfile userProfile;
 
@@ -34,7 +36,7 @@ public class User extends BaseEntity implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority(""), new SimpleGrantedAuthority("ROLE_"));
+        return List.of(new SimpleGrantedAuthority(role.getRoleName()));
     }
 
     @Override
