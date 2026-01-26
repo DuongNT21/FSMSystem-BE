@@ -1,4 +1,4 @@
-package com.swp391_be.SWP391_be.dto.response.user;
+package com.swp391_be.SWP391_be.dto.response.auth;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,8 +9,8 @@ import lombok.Setter;
 @AllArgsConstructor
 @Getter
 @Setter
-public class BaseResponse<T> {
-    private int status;
-    private String message;
-    private T data;
+public class AuthResponse {
+    private String token;
+    private String fullName;
+    private String roleName;
 }
