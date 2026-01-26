@@ -1,6 +1,7 @@
 package com.swp391_be.SWP391_be.controller;
 
 import com.swp391_be.SWP391_be.dto.request.rawMaterial.CreateRawMaterialRequest;
+import com.swp391_be.SWP391_be.dto.request.rawMaterial.UpdateRawMaterialRequest;
 import com.swp391_be.SWP391_be.dto.response.BaseResponse;
 import com.swp391_be.SWP391_be.dto.response.rawMaterial.CreateRawMaterialResponse;
 import com.swp391_be.SWP391_be.dto.response.rawMaterial.GetRawMaterialResponse;
@@ -44,6 +45,25 @@ public class RawMaterialController {
         baseResponse.setStatus(HttpStatus.OK.value());
         baseResponse.setMessage("Get Raw Material Successful");
         baseResponse.setData(getRawMaterialResponse);
+        return ResponseEntity.status(HttpStatus.OK).body(baseResponse);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<BaseResponse<GetRawMaterialResponse>> updateMaterialById(@PathVariable int id, @RequestBody UpdateRawMaterialRequest request){
+        GetRawMaterialResponse getRawMaterialResponse = rawMaterialService.updateRawMaterial(id, request);
+        BaseResponse<GetRawMaterialResponse> baseResponse = new BaseResponse<>();
+        baseResponse.setStatus(HttpStatus.OK.value());
+        baseResponse.setMessage("Update Raw Material Successful");
+        baseResponse.setData(getRawMaterialResponse);
+        return ResponseEntity.status(HttpStatus.OK).body(baseResponse);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<BaseResponse<?>> deleteMaterialById(@PathVariable int id){
+        rawMaterialService.deleteRawMaterial(id);
+        BaseResponse<?> baseResponse = new BaseResponse<>();
+        baseResponse.setStatus(HttpStatus.OK.value());
+        baseResponse.setMessage("Delete Raw Material Successful");
         return ResponseEntity.status(HttpStatus.OK).body(baseResponse);
     }
 }
