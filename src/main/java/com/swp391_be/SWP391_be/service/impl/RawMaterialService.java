@@ -1,6 +1,7 @@
 package com.swp391_be.SWP391_be.service.impl;
 
 import com.swp391_be.SWP391_be.dto.request.rawMaterial.CreateRawMaterialRequest;
+import com.swp391_be.SWP391_be.dto.request.rawMaterial.UpdateRawMaterialRequest;
 import com.swp391_be.SWP391_be.dto.response.rawMaterial.CreateRawMaterialResponse;
 import com.swp391_be.SWP391_be.dto.response.rawMaterial.GetRawMaterialResponse;
 import com.swp391_be.SWP391_be.entity.RawMaterial;
@@ -66,5 +67,28 @@ public class RawMaterialService implements IRawMaterialService {
         response.setQuantity(rawMaterial.getQuantity());
         response.setImportPrice(rawMaterial.getImportPrice());
         return response;
+    }
+
+    @Override
+    public GetRawMaterialResponse updateRawMaterial(int id, UpdateRawMaterialRequest request) {
+        RawMaterial rawMaterial = rawMaterialRepository.findById(id).orElseThrow(() -> new NotFoundException("Not found"));
+        rawMaterial.setName(request.getName() != null ? request.getName() : rawMaterial.getName());
+        rawMaterial.setQuantity(request.getQuantity() != 0 ? request.getQuantity() : rawMaterial.getQuantity());
+        rawMaterial.setImportPrice(request.getImportPrice() != 0 ? request.getImportPrice() : rawMaterial.getImportPrice());
+        rawMaterial.setUpdatedAt(LocalDateTime.now());
+        rawMaterialRepository.save(rawMaterial);
+        GetRawMaterialResponse response = new GetRawMaterialResponse();
+        response.setId(rawMaterial.getId());
+        response.setName(rawMaterial.getName());
+        response.setQuantity(rawMaterial.getQuantity());
+        response.setImportPrice(rawMaterial.getImportPrice());
+        return response;
+    }
+
+    @Override
+    public void deleteRawMaterial(int id) {
+        RawMaterial rawMaterial = rawMaterialRepository.findById(id).orElseThrow(() -> new NotFoundException("Not found"));
+        rawMaterial.setDeletedAt(LocalDateTime.now());
+        rawMaterialRepository.save(rawMaterial);
     }
 }
