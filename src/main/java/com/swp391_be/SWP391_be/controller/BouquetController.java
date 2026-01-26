@@ -9,6 +9,7 @@ import com.swp391_be.SWP391_be.dto.response.BaseResponse;
 import com.swp391_be.SWP391_be.dto.response.bouquet.BouquetListResponse;
 import com.swp391_be.SWP391_be.dto.response.pageResponse.PageResponse;
 import com.swp391_be.SWP391_be.entity.Bouquet;
+import com.swp391_be.SWP391_be.exception.GlobalException;
 
 import org.springframework.web.bind.annotation.RequestBody;
 import lombok.RequiredArgsConstructor;
@@ -38,11 +39,11 @@ public class BouquetController {
 
   @PostMapping("/create")
   public ResponseEntity<BaseResponse<Bouquet>> create(@RequestBody CreateBouquetRequest request) {
-    Bouquet response = bouquetService.createBouquet(request);
-    BaseResponse<Bouquet> baseResponse = new BaseResponse<>();
-    baseResponse.setStatus(HttpStatus.CREATED.value());
-    baseResponse.setMessage("Create Bouquet");
-    baseResponse.setData(response);
+      Bouquet response = bouquetService.createBouquet(request);
+      BaseResponse<Bouquet> baseResponse = new BaseResponse<>();
+      baseResponse.setStatus(HttpStatus.CREATED.value());
+      baseResponse.setMessage("Create Bouquet");
+      baseResponse.setData(response);
     return ResponseEntity.status(HttpStatus.CREATED).body(baseResponse);
   }
 

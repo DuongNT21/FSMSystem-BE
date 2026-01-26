@@ -4,6 +4,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import com.swp391_be.SWP391_be.exception.BadHttpRequestException;
 
+import java.io.InputStream;
+import java.net.URL;
+import java.util.Base64;
 import java.util.Optional;
 
 import org.apache.logging.log4j.util.Strings;
@@ -65,6 +68,7 @@ public class BouquetService implements IBouquetService {
     // Create bouquet images
     for (String image : bouquetRequest.getImages()) {
       BouquetImage bouquetImage = new BouquetImage();
+      image = fromUrl(image);
       bouquetImage.setImage(image);
       bouquetImage.setBouquet(bouquet);
       bouquet.getImages().add(bouquetImage);
@@ -188,4 +192,14 @@ public class BouquetService implements IBouquetService {
     }
     return "";
   }
+
+  
+    public String fromUrl(String imageUrl) {
+        try (InputStream is = new URL(imageUrl).openStream()) {
+            byte[] bytes = is.readAllBytes();
+            return Base64.getEncoder().encodeToString(bytes);
+        } catch (Exception e) {
+            throw new BadHttpRequestException("Không thể tải ảnh từ URL");
+        }
+    }
 }
