@@ -13,4 +13,8 @@ public class ApiConstant {
     public static class USER {
         public static final String USER = "/register";
     }
+
+    public static class EMPLOYEE {
+        public static final String EMPLOYEE = "/employee";
+    }
 }
