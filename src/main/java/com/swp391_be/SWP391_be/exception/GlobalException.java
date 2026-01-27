@@ -2,6 +2,7 @@ package com.swp391_be.SWP391_be.exception;
 
 
 import com.swp391_be.SWP391_be.dto.response.BaseResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -9,6 +10,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalException {
 
@@ -53,4 +55,13 @@ public class GlobalException {
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<BaseResponse<?>> handleRuntimeException(RuntimeException exception) {
+        log.error(exception.getMessage(), exception);
+        BaseResponse<?> response = new BaseResponse<>();
+        response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+        response.setMessage(exception.getMessage());
+        response.setData(null);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    }
 }
