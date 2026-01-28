@@ -179,7 +179,7 @@ public class BouquetService implements IBouquetService {
       return "Bouquet name is required";
     }
     boolean existingBouquet = repository.existsByName(name);
-    if (existingBouquet) {
+    if (existingBouquet && !bouquet.getName().equals(bouquetRequest.getName())) {
       return "Bouquet name already exists";
     }
     // Check if bouquet name already exists
