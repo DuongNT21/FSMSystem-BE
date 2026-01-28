@@ -120,14 +120,14 @@ public class BouquetService implements IBouquetService {
     Bouquet bouquet = optionalBouquet.get();
     String requestValidMessage = validateBouquetRequestUpdate(bouquetRequest, bouquet);
 
-    if (requestValidMessage.equals(Strings.EMPTY)) {
+    if (!requestValidMessage.equals(Strings.EMPTY)) {
       throw new BadHttpRequestException(requestValidMessage);
     }
-    // TODO: Check if bouquet materials are valid (if not valid create a new request
-    // for materials)
+    // TODO: Check if bouquet materials are valid (if not valid create a new request for materials)
 
     // Update a new bouquet
     bouquet.setName(bouquetRequest.getName());
+    bouquet.setDescription(bouquetRequest.getDescription());
     bouquet.setPrice(bouquetRequest.getPrice());
     bouquet.setStatus(bouquetRequest.getStatus());
 
@@ -138,6 +138,7 @@ public class BouquetService implements IBouquetService {
       for (BouquetImage bouquetImage : bouquet.getImages()) {
         if (bouquetImage.getImage().equals(image)) {
           isExistedImage = true;
+          
           break;
         }
       }
@@ -173,8 +174,13 @@ public class BouquetService implements IBouquetService {
       return "Bouquet id is required";
     }
     // Check if bouquet name is valid
+    String name = bouquetRequest.getName();
     if (bouquetRequest.getName() == null || bouquetRequest.getName().isEmpty()) {
       return "Bouquet name is required";
+    }
+    boolean existingBouquet = repository.existsByName(name);
+    if (existingBouquet) {
+      return "Bouquet name already exists";
     }
     // Check if bouquet name already exists
     boolean isExisted = repository.existsByName(bouquetRequest.getName());
