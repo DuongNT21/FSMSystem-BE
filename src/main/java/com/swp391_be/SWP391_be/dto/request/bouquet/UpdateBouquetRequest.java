@@ -14,5 +14,6 @@ public class UpdateBouquetRequest {
   private int status;
   private String description;
   private List<String> images;
+  private List<Integer> deleteImages;
   private List<MaterialReq> materials; 
 }

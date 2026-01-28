@@ -131,6 +131,14 @@ public class BouquetService implements IBouquetService {
     bouquet.setPrice(bouquetRequest.getPrice());
     bouquet.setStatus(bouquetRequest.getStatus());
 
+    // Delete bouquet images
+    for (int imageId : bouquetRequest.getDeleteImages()) {
+      Optional<BouquetImage> optionalBouquetImage = bouquet.getImages().stream()
+          .filter(image -> image.getId() == imageId).findFirst();
+      if (optionalBouquetImage.isPresent()) {
+        bouquet.getImages().remove(optionalBouquetImage.get());
+      }
+    }
     // Update bouquet images
     for (String image : bouquetRequest.getImages()) {
       // Check if image is existed
