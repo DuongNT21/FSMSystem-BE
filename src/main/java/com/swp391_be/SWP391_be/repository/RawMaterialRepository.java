@@ -22,4 +22,14 @@ public interface RawMaterialRepository extends JpaRepository<RawMaterial, Intege
         """
     )
     Optional<RawMaterial> findById(@Param("id") int id);
+
+    @Query(
+        """
+        SELECT COUNT(r) > 0
+        FROM RawMaterial r
+        WHERE r.name = :name
+          AND r.deletedAt IS NULL
+        """
+    )
+    boolean existsByNameAndDeletedAtIsNull(@Param("name") String name);
 }
