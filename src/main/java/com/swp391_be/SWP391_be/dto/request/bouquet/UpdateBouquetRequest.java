@@ -7,7 +7,8 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class CreateBouquetRequest {
+public class UpdateBouquetRequest {
+  private Integer id;
   private String name;
   private float price;
   private int status;
