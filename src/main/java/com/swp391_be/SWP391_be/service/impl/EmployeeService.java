@@ -32,7 +32,6 @@ public class EmployeeService implements IEmployeeService {
     public CreateEmployeeResponse createEmployee(CreateEmployeeRequest createEmployeeRequest) {
         List<UserProfile> userProfiles = userProfileRepository.findAll();
         List<User> users = userRepository.findAll();
-
         if(users.stream().anyMatch(u -> u.getUsername().equals(createEmployeeRequest.getUsername()))) {
             throw new BadHttpRequestException("Username is already taken");
         }
@@ -50,6 +49,7 @@ public class EmployeeService implements IEmployeeService {
         user.setUsername(createEmployeeRequest.getUsername());
         user.setEmail(createEmployeeRequest.getEmail());
         user.setCreatedAt(now);
+        user.setRole(roleRepository.findByRoleName("Staff"));
         user.setPassword(passwordEncoder.encode(createEmployeeRequest.getPassword()));
 
         userRepository.save(user);
