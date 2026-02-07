@@ -1,8 +1,10 @@
 package com.swp391_be.SWP391_be.controller;
 
 import com.swp391_be.SWP391_be.dto.request.rawMaterial.CreateRawMaterialRequest;
+import com.swp391_be.SWP391_be.dto.request.rawMaterial.GetRawMaterialCriteriaRequest;
 import com.swp391_be.SWP391_be.dto.request.rawMaterial.UpdateRawMaterialRequest;
 import com.swp391_be.SWP391_be.dto.response.BaseResponse;
+import com.swp391_be.SWP391_be.dto.response.pageResponse.PageResponse;
 import com.swp391_be.SWP391_be.dto.response.rawMaterial.CreateRawMaterialResponse;
 import com.swp391_be.SWP391_be.dto.response.rawMaterial.GetRawMaterialResponse;
 import com.swp391_be.SWP391_be.service.IRawMaterialService;
@@ -28,14 +30,19 @@ public class RawMaterialController {
         return ResponseEntity.status(HttpStatus.CREATED).body(baseResponse);
     }
 
-    @GetMapping()
-    public ResponseEntity<BaseResponse<List<GetRawMaterialResponse>>> getAllRawMaterial(){
-        List<GetRawMaterialResponse> materialResponses = rawMaterialService.getAllRawMaterial();
-        BaseResponse<List<GetRawMaterialResponse>> baseResponse = new BaseResponse<>();
-        baseResponse.setStatus(HttpStatus.OK.value());
-        baseResponse.setMessage("Get List Raw Material Successful");
-        baseResponse.setData(materialResponses);
-        return ResponseEntity.status(HttpStatus.OK).body(baseResponse);
+    @GetMapping
+    public ResponseEntity<BaseResponse<PageResponse<GetRawMaterialResponse>>> getRawMaterials(
+            GetRawMaterialCriteriaRequest criteria,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt,desc") String sort) {
+        PageResponse<GetRawMaterialResponse> data = rawMaterialService.getRawMaterials(criteria, page, size, sort);
+        BaseResponse<PageResponse<GetRawMaterialResponse>> response = new BaseResponse<>();
+        response.setStatus(HttpStatus.OK.value());
+        response.setMessage("Get raw material list successfully");
+        response.setData(data);
+
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{id}")

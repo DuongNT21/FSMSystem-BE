@@ -2,13 +2,14 @@ package com.swp391_be.SWP391_be.repository;
 
 import com.swp391_be.SWP391_be.entity.RawMaterial;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
 
-public interface RawMaterialRepository extends JpaRepository<RawMaterial, Integer> {
+public interface RawMaterialRepository extends JpaRepository<RawMaterial, Integer>, JpaSpecificationExecutor<RawMaterial> {
     @Query(
         """
         select r from RawMaterial r WHERE r.deletedAt is null
