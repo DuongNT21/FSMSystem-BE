@@ -1,7 +1,9 @@
 package com.swp391_be.SWP391_be.service.impl;
 
 import com.swp391_be.SWP391_be.dto.request.rawMaterial.CreateRawMaterialRequest;
+import com.swp391_be.SWP391_be.dto.request.rawMaterial.GetRawMaterialCriteriaRequest;
 import com.swp391_be.SWP391_be.dto.request.rawMaterial.UpdateRawMaterialRequest;
+import com.swp391_be.SWP391_be.dto.response.pageResponse.PageResponse;
 import com.swp391_be.SWP391_be.dto.response.rawMaterial.CreateRawMaterialResponse;
 import com.swp391_be.SWP391_be.dto.response.rawMaterial.GetRawMaterialResponse;
 import com.swp391_be.SWP391_be.entity.RawMaterial;
@@ -9,10 +11,13 @@ import com.swp391_be.SWP391_be.exception.BadHttpRequestException;
 import com.swp391_be.SWP391_be.exception.NotFoundException;
 import com.swp391_be.SWP391_be.repository.RawMaterialRepository;
 import com.swp391_be.SWP391_be.service.IRawMaterialService;
+import com.swp391_be.SWP391_be.specification.RawMaterialSpec;
 import jakarta.transaction.SystemException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,21 +53,26 @@ public class RawMaterialService implements IRawMaterialService {
     }
 
     @Override
-    public List<GetRawMaterialResponse> getAllRawMaterial() {
-        List<RawMaterial> materials = rawMaterialRepository.findAll(); //lay ra tat ca raw material
-        //materials la 1 list
-        //material la tung phan tu trong list
-        //truoc dau "->" la input dau vao
-        //sau dau "->" la logic cua minh
-        List<GetRawMaterialResponse> responses = materials.stream().map(material -> {
-            GetRawMaterialResponse response = new GetRawMaterialResponse();
-            response.setId(material.getId());
-            response.setName(material.getName());
-            response.setQuantity(material.getQuantity());
-            response.setImportPrice(material.getImportPrice());
-            return response;
-        }).collect(Collectors.toList());
-        return responses;
+    public PageResponse<GetRawMaterialResponse> getRawMaterials(GetRawMaterialCriteriaRequest criteria, int page, int size, String sort) {
+        String[] sortArr = sort.split(",");
+        Sort.Direction direction = sortArr.length > 1 && sortArr[1].equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
+
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                Sort.by(direction, sortArr[0])
+        );
+
+        Page<RawMaterial> materialPage = rawMaterialRepository.findAll(RawMaterialSpec.byCriteria(criteria), pageable);
+
+        return PageResponse.fromPage(materialPage, material -> {
+            GetRawMaterialResponse res = new GetRawMaterialResponse();
+            res.setId(material.getId());
+            res.setName(material.getName());
+            res.setQuantity(material.getQuantity());
+            res.setImportPrice(material.getImportPrice());
+            return res;
+        });
     }
 
     @Override
