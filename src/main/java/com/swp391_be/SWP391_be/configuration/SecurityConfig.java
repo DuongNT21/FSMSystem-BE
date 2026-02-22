@@ -41,16 +41,23 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, CustomAccessDeniedHandler customAccessDeniedHandler, CustomAuthenticationEntryPoint customAuthenticationEntryPoint) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http,
+            CustomAccessDeniedHandler customAccessDeniedHandler,
+            CustomAuthenticationEntryPoint customAuthenticationEntryPoint) throws Exception {
         http
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/bouquets/**").permitAll()
-                        .requestMatchers("/api/users","/api/auth","/swagger-ui/**", "/v3/api-docs/**" ,"/api/material/**", "/api/register").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/bouquets/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/bouquets/**").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/bouquets/**").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/bouquets/**").authenticated()
+                        
+                        .requestMatchers("/api/users", "/api/auth", "/swagger-ui/**", "/v3/api-docs/**",
+                                "/api/material/**", "/api/register")
+                        .permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/google").permitAll()
-                        .anyRequest().authenticated()
-                )
+                        .anyRequest().authenticated())
                 .exceptionHandling(ex -> ex
                         .accessDeniedHandler(customAccessDeniedHandler)
                         .authenticationEntryPoint(customAuthenticationEntryPoint))

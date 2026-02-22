@@ -12,6 +12,5 @@ public class CreateBouquetRequest {
   private float price;
   private int status;
   private String description;
-  private List<String> images;
   private List<MaterialReq> materials; 
 }

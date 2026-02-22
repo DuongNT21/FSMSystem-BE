@@ -2,11 +2,16 @@ package com.swp391_be.SWP391_be.service.impl;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
 import com.swp391_be.SWP391_be.exception.BadHttpRequestException;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.Base64;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.apache.logging.log4j.util.Strings;
@@ -25,18 +30,19 @@ import com.swp391_be.SWP391_be.entity.BouquetsMaterial;
 import com.swp391_be.SWP391_be.repository.BouquetRepository;
 import com.swp391_be.SWP391_be.service.IBouquetService;
 import com.swp391_be.SWP391_be.specification.BouquetSpec;
+import com.swp391_be.SWP391_be.service.IImageService;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class BouquetService implements IBouquetService {
 
   private final BouquetRepository repository;
-
-  public BouquetService(BouquetRepository repository) {
-    this.repository = repository;
-  }
+  private final IImageService imageService;
 
   @Override
-  public Bouquet createBouquet(CreateBouquetRequest bouquetRequest) {
+  public Bouquet createBouquet(CreateBouquetRequest bouquetRequest, List<MultipartFile> images) {
     // Check if bouquet name is valid
     if (bouquetRequest.getName() == null || bouquetRequest.getName().isEmpty()) {
       throw new BadHttpRequestException("Bouquet name is required");
@@ -64,14 +70,23 @@ public class BouquetService implements IBouquetService {
     bouquet.setPrice(bouquetRequest.getPrice());
     bouquet.setStatus(bouquetRequest.getStatus());
     bouquet.setDescription(bouquetRequest.getDescription());
-
+    
     // Create bouquet images
-    for (String image : bouquetRequest.getImages()) {
-      BouquetImage bouquetImage = new BouquetImage();
-      image = fromUrl(image);
-      bouquetImage.setImage(image);
-      bouquetImage.setBouquet(bouquet);
-      bouquet.getImages().add(bouquetImage);
+    for (MultipartFile file : images) {
+
+        try {
+            Map<String, String> uploadResult = imageService.uploadImage(file);
+
+            BouquetImage bouquetImage = new BouquetImage();
+            bouquetImage.setImage(uploadResult.get("url"));
+            bouquetImage.setPublicId(uploadResult.get("publicId"));
+            bouquetImage.setBouquet(bouquet);
+
+            bouquet.getImages().add(bouquetImage);
+
+        } catch (IOException e) {
+            throw new BadHttpRequestException("Image upload failed");
+        }
     }
 
     // Create bouquet materials
@@ -131,6 +146,14 @@ public class BouquetService implements IBouquetService {
     bouquet.setPrice(bouquetRequest.getPrice());
     bouquet.setStatus(bouquetRequest.getStatus());
 
+    // Delete bouquet images
+    for (int imageId : bouquetRequest.getDeleteImages()) {
+      Optional<BouquetImage> optionalBouquetImage = bouquet.getImages().stream()
+          .filter(image -> image.getId() == imageId).findFirst();
+      if (optionalBouquetImage.isPresent()) {
+        bouquet.getImages().remove(optionalBouquetImage.get());
+      }
+    }
     // Update bouquet images
     for (String image : bouquetRequest.getImages()) {
       // Check if image is existed
