@@ -69,8 +69,8 @@ public class RawMaterialService implements IRawMaterialService {
             GetRawMaterialResponse res = new GetRawMaterialResponse();
             res.setId(material.getId());
             res.setName(material.getName());
-//            res.setQuantity(material.getQuantity());
-//            res.setImportPrice(material.getImportPrice());
+            res.setQuantity(material.getQuantity());
+            res.setImportPrice(material.getImportPrice());
             return res;
         });
     }
@@ -81,8 +81,8 @@ public class RawMaterialService implements IRawMaterialService {
         GetRawMaterialResponse response = new GetRawMaterialResponse();
         response.setId(rawMaterial.getId());
         response.setName(rawMaterial.getName());
-//        response.setQuantity(rawMaterial.getQuantity());
-//        response.setImportPrice(rawMaterial.getImportPrice());
+        response.setQuantity(rawMaterial.getQuantity());
+        response.setImportPrice(rawMaterial.getImportPrice());
         return response;
     }
 
