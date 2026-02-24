@@ -17,10 +17,9 @@ import java.util.List;
 @Setter
 public class RawMaterial extends BaseEntity {
     private String name;
-    private LocalDateTime importDate;
-    private LocalDateTime expireDate;
-    private int quantity;
-    private float importPrice;
+
+    @OneToMany(mappedBy = "rawMaterial")
+    private List<RawMaterialBatches> rawMaterialBatches;
 
     @OneToMany(mappedBy = "rawMaterial")
     private List<BouquetsMaterial> bouquetsMaterials;
