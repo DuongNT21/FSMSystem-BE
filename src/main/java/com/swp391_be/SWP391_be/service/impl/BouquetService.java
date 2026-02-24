@@ -70,23 +70,23 @@ public class BouquetService implements IBouquetService {
     bouquet.setPrice(bouquetRequest.getPrice());
     bouquet.setStatus(bouquetRequest.getStatus());
     bouquet.setDescription(bouquetRequest.getDescription());
-    
+
     // Create bouquet images
     for (MultipartFile file : images) {
 
-        try {
-            Map<String, String> uploadResult = imageService.uploadImage(file);
+      try {
+        Map<String, String> uploadResult = imageService.uploadImage(file);
 
-            BouquetImage bouquetImage = new BouquetImage();
-            bouquetImage.setImage(uploadResult.get("url"));
-            bouquetImage.setPublicId(uploadResult.get("publicId"));
-            bouquetImage.setBouquet(bouquet);
+        BouquetImage bouquetImage = new BouquetImage();
+        bouquetImage.setImage(uploadResult.get("url"));
+        bouquetImage.setPublicId(uploadResult.get("publicId"));
+        bouquetImage.setBouquet(bouquet);
 
-            bouquet.getImages().add(bouquetImage);
+        bouquet.getImages().add(bouquetImage);
 
-        } catch (IOException e) {
-            throw new BadHttpRequestException("Image upload failed");
-        }
+      } catch (IOException e) {
+        throw new BadHttpRequestException("Image upload failed");
+      }
     }
 
     // Create bouquet materials
@@ -118,16 +118,16 @@ public class BouquetService implements IBouquetService {
     }
     Bouquet bouquet = optionalBouquet.get();
     if (bouquet.getImages() != null) {
-        bouquet.getImages().forEach(BouquetImage::getBouquet);
+      bouquet.getImages().forEach(BouquetImage::getBouquet);
     }
     if (bouquet.getBouquetsMaterials() != null) {
-        bouquet.getBouquetsMaterials().forEach(BouquetsMaterial::getBouquet);
+      bouquet.getBouquetsMaterials().forEach(BouquetsMaterial::getBouquet);
     }
     return bouquet;
   }
 
   @Override
-  public Bouquet updateBouquet(UpdateBouquetRequest bouquetRequest) {
+  public Bouquet updateBouquet(UpdateBouquetRequest bouquetRequest, List<MultipartFile> images) {
     Optional<Bouquet> optionalBouquet = repository.findById(bouquetRequest.getId());
     if (!optionalBouquet.isPresent()) {
       throw new BadHttpRequestException("Bouquet not found");
@@ -138,50 +138,48 @@ public class BouquetService implements IBouquetService {
     if (!requestValidMessage.equals(Strings.EMPTY)) {
       throw new BadHttpRequestException(requestValidMessage);
     }
-    // TODO: Check if bouquet materials are valid (if not valid create a new request for materials)
 
-    // Update a new bouquet
+    // Update bouquet fields
     bouquet.setName(bouquetRequest.getName());
     bouquet.setDescription(bouquetRequest.getDescription());
     bouquet.setPrice(bouquetRequest.getPrice());
     bouquet.setStatus(bouquetRequest.getStatus());
 
     // Delete bouquet images
-    for (int imageId : bouquetRequest.getDeleteImages()) {
-      Optional<BouquetImage> optionalBouquetImage = bouquet.getImages().stream()
-          .filter(image -> image.getId() == imageId).findFirst();
-      if (optionalBouquetImage.isPresent()) {
-        bouquet.getImages().remove(optionalBouquetImage.get());
-      }
-    }
-    // Update bouquet images
-    for (String image : bouquetRequest.getImages()) {
-      // Check if image is existed
-      boolean isExistedImage = false;
-      for (BouquetImage bouquetImage : bouquet.getImages()) {
-        if (bouquetImage.getImage().equals(image)) {
-          isExistedImage = true;
-          
-          break;
+    if (bouquetRequest.getDeleteImages() != null) {
+      for (int imageId : bouquetRequest.getDeleteImages()) {
+        Optional<BouquetImage> optionalBouquetImage = bouquet.getImages().stream()
+            .filter(image -> image.getId() == imageId).findFirst();
+        if (optionalBouquetImage.isPresent()) {
+          BouquetImage toDelete = optionalBouquetImage.get();
+          try {
+            if (toDelete.getPublicId() != null) {
+              imageService.deleteImage(toDelete.getPublicId());
+            }
+          } catch (IOException e) {
+            throw new BadHttpRequestException("Image delete failed");
+          }
+          bouquet.getImages().remove(toDelete);
         }
-      }
-      if (!isExistedImage) {
-        BouquetImage bouquetImage = new BouquetImage();
-        bouquetImage.setImage(image);
-        bouquetImage.setBouquet(bouquet);
-        bouquet.getImages().add(bouquetImage);
       }
     }
 
-    // Update bouquet materials
-    // for (MaterialReq material : bouquetRequest.getMaterials()) {
-    // BouquetsMaterial bouquetMaterials = new BouquetsMaterial();
-    // TODO GET RAW MATERIAL
-    // bouquetMaterials.setRawMaterial(material.getName());
-    // bouquetMaterials.setQuantity(material.getQuantity());
-    // bouquetMaterials.setBouquet(bouquet);
-    // bouquet.getBouquetsMaterials().add(bouquetMaterials);
-    // }
+    // Upload and add new images
+    if (images != null) {
+      for (MultipartFile file : images) {
+        try {
+          Map<String, String> uploadResult = imageService.uploadImage(file);
+          BouquetImage bouquetImage = new BouquetImage();
+          bouquetImage.setImage(uploadResult.get("url"));
+          bouquetImage.setPublicId(uploadResult.get("publicId"));
+          bouquetImage.setBouquet(bouquet);
+          bouquet.getImages().add(bouquetImage);
+        } catch (IOException e) {
+          throw new BadHttpRequestException("Image upload failed");
+        }
+      }
+    }
+
     return repository.save(bouquet);
   }
 
@@ -221,14 +219,4 @@ public class BouquetService implements IBouquetService {
     }
     return "";
   }
-
-  
-    public String fromUrl(String imageUrl) {
-        try (InputStream is = new URL(imageUrl).openStream()) {
-            byte[] bytes = is.readAllBytes();
-            return Base64.getEncoder().encodeToString(bytes);
-        } catch (Exception e) {
-            throw new BadHttpRequestException("Không thể tải ảnh từ URL");
-        }
-    }
 }

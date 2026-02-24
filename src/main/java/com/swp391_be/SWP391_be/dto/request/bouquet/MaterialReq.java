@@ -6,11 +6,11 @@ import lombok.Setter;
 @Getter
 @Setter
 public class MaterialReq {
-  private String name;
+  private int id;
   private int quantity;
 
-  public MaterialReq(String name, int quantity) {
-    this.name = name;
+  public MaterialReq(int id, int quantity) {
+    this.id = id;
     this.quantity = quantity;
   }
   

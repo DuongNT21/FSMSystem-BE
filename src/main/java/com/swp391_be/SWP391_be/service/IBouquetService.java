@@ -16,7 +16,7 @@ import com.swp391_be.SWP391_be.entity.Bouquet;
 public interface IBouquetService {
   Bouquet createBouquet(CreateBouquetRequest bouquetRequest, List<MultipartFile> images);
   Bouquet getById(int id);
-  Bouquet updateBouquet(UpdateBouquetRequest bouquet);
+  Bouquet updateBouquet(UpdateBouquetRequest bouquet, List<MultipartFile> images);
   void deleteBouquet(int id);
   PageResponse<BouquetListResponse> getBouquets(Pageable pageable, GetBouquetCriteriaRequest getBouquetRequest);
 }

@@ -62,9 +62,17 @@ public class BouquetController {
     return ResponseEntity.status(HttpStatus.CREATED).body(baseResponse);
   }
 
-  @PutMapping("/update")
-  public ResponseEntity<BaseResponse<Bouquet>> update(@RequestBody UpdateBouquetRequest request) {
-    Bouquet response = bouquetService.updateBouquet(request);
+  @PutMapping(value = "/update", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+  public ResponseEntity<BaseResponse<Bouquet>> update(
+      @RequestPart("request") String requestJson,
+      @RequestPart("id") String id,
+      @RequestPart(value = "images", required = false) List<MultipartFile> images) throws Exception {
+
+    ObjectMapper mapper = new ObjectMapper();
+    UpdateBouquetRequest request = mapper.readValue(requestJson, UpdateBouquetRequest.class);
+    int idInt = Integer.parseInt(id);
+    request.setId(idInt);
+    Bouquet response = bouquetService.updateBouquet(request, images);
     BaseResponse<Bouquet> baseResponse = new BaseResponse<>();
     baseResponse.setStatus(HttpStatus.CREATED.value());
     baseResponse.setMessage("Update Bouquet");

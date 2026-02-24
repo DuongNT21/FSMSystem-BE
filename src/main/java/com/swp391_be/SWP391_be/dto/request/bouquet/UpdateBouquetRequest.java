@@ -13,7 +13,6 @@ public class UpdateBouquetRequest {
   private float price;
   private int status;
   private String description;
-  private List<String> images;
   private List<Integer> deleteImages;
   private List<MaterialReq> materials; 
 }
