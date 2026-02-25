@@ -17,8 +17,6 @@ import java.util.List;
 @Setter
 public class RawMaterial extends BaseEntity {
     private String name;
-    private int quantity;
-    private float importPrice;
     private int userId;
     private LocalDateTime importDate;
 

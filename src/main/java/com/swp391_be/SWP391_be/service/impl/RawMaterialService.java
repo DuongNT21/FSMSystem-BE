@@ -38,6 +38,7 @@ public class RawMaterialService implements IRawMaterialService {
         if (userId == -1) {
             throw new BadHttpRequestException("Unauthorized");
         }
+       
         if (rawMaterialRepository.existsByNameAndDeletedAtIsNull(request.getName())) {
             throw new BadHttpRequestException("Raw material already exists");
         }
@@ -51,12 +52,15 @@ public class RawMaterialService implements IRawMaterialService {
         CreateRawMaterialResponse materialResponse = new CreateRawMaterialResponse();
         materialResponse.setId(rawMaterial.getId());
         materialResponse.setName(rawMaterial.getName());
-//        materialResponse.setQuantity(rawMaterial.getQuantity());
-//        materialResponse.setImportPrice(rawMaterial.getImportPrice());
+
+        // materialResponse.setQuantity(rawMaterial.getQuantity());
+        // materialResponse.setImportPrice(rawMaterial.getImportPrice());
         return materialResponse;
     }
 
     @Override
+    public PageResponse<GetRawMaterialResponse> getRawMaterials(GetRawMaterialCriteriaRequest criteria, int page,
+            int size, String sort) {
     public PageResponse<GetRawMaterialResponse> getRawMaterials(GetRawMaterialCriteriaRequest criteria, int page,
             int size, String sort) {
         String[] sortArr = sort.split(",");
@@ -66,6 +70,7 @@ public class RawMaterialService implements IRawMaterialService {
         Pageable pageable = PageRequest.of(
                 page,
                 size,
+                Sort.by(direction, sortArr[0]));
                 Sort.by(direction, sortArr[0]));
 
         Page<RawMaterial> materialPage = rawMaterialRepository.findAll(RawMaterialSpec.byCriteria(criteria), pageable);
@@ -82,6 +87,8 @@ public class RawMaterialService implements IRawMaterialService {
     public GetRawMaterialResponse getRawMaterialById(int id) {
         RawMaterial rawMaterial = rawMaterialRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Not found"));
+        RawMaterial rawMaterial = rawMaterialRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Not found"));
         GetRawMaterialResponse response = new GetRawMaterialResponse();
         response.setId(rawMaterial.getId());
         response.setName(rawMaterial.getName());
@@ -90,6 +97,8 @@ public class RawMaterialService implements IRawMaterialService {
 
     @Override
     public GetRawMaterialResponse updateRawMaterial(int id, UpdateRawMaterialRequest request) {
+        RawMaterial rawMaterial = rawMaterialRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Not found"));
         RawMaterial rawMaterial = rawMaterialRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Not found"));
         rawMaterial.setName(request.getName() != null ? request.getName() : rawMaterial.getName());
@@ -107,6 +116,8 @@ public class RawMaterialService implements IRawMaterialService {
 
     @Override
     public void deleteRawMaterial(int id) {
+        RawMaterial rawMaterial = rawMaterialRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Not found"));
         RawMaterial rawMaterial = rawMaterialRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Not found"));
         rawMaterial.setDeletedAt(LocalDateTime.now());
