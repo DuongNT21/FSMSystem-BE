@@ -22,7 +22,8 @@ public class RawMaterialBatches extends BaseEntity{
     private Date importDate;
     private Date expireDate;
     private float importPrice;
-
+    private int originalQuantity;
+    private int remainQuantity;
     @ManyToOne
     @JoinColumn(name = "raw_material_id", nullable = false)
     @JsonIgnore
@@ -31,3 +32,4 @@ public class RawMaterialBatches extends BaseEntity{
     @OneToMany(mappedBy = "rawMaterialBatches")
     private List<InventoryLogs> inventoryLogs;
 }
+
