@@ -13,5 +13,4 @@ public class GetRawMaterialResponse {
     private int id;
     private String name;
     private float importPrice;
-    private int quantity;
 }

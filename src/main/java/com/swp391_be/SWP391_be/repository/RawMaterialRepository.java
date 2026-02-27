@@ -33,4 +33,6 @@ public interface RawMaterialRepository extends JpaRepository<RawMaterial, Intege
         """
     )
     boolean existsByNameAndDeletedAtIsNull(@Param("name") String name);
+
+    Optional<RawMaterial> findByName(String name);
 }
