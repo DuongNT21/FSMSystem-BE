@@ -12,5 +12,4 @@ import lombok.Setter;
 public class GetRawMaterialResponse {
     private int id;
     private String name;
-    private float importPrice;
 }

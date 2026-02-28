@@ -10,6 +10,7 @@ import com.swp391_be.SWP391_be.dto.response.category.GetCategoryResponse;
 import com.swp391_be.SWP391_be.dto.response.pageResponse.PageResponse;
 import com.swp391_be.SWP391_be.dto.response.rawMaterial.GetRawMaterialResponse;
 import com.swp391_be.SWP391_be.service.ICategoryService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +22,7 @@ import org.springframework.web.bind.annotation.*;
 public class CategoryController {
     private final ICategoryService categoryService;
     @PostMapping()
-    public ResponseEntity<BaseResponse<CreateCategoryResponse>> createCategory(@RequestBody CreateCategoryRequest request){
+    public ResponseEntity<BaseResponse<CreateCategoryResponse>> createCategory(@Valid @RequestBody CreateCategoryRequest request){
         CreateCategoryResponse response = categoryService.createCategory(request);
         BaseResponse<CreateCategoryResponse> baseResponse = new BaseResponse<>();
         baseResponse.setStatus(HttpStatus.CREATED.value());

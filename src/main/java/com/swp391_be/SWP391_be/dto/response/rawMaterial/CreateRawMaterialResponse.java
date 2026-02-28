@@ -12,9 +12,4 @@ import lombok.Setter;
 public class CreateRawMaterialResponse {
     private int id;
     private String name;
-    //private LocalDateTime importDate;
-    //private LocalDateTime expireDate;
-    private int quantity;
-    private float importPrice;
-
 }

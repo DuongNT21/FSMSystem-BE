@@ -17,8 +17,6 @@ import java.util.List;
 @Setter
 public class RawMaterial extends BaseEntity {
     private String name;
-    private int quantity;
-    private float importPrice;
 
     @OneToMany(mappedBy = "rawMaterial")
     private List<RawMaterialBatches> rawMaterialBatches;
