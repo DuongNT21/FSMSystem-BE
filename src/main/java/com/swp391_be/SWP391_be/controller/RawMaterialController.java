@@ -8,6 +8,7 @@ import com.swp391_be.SWP391_be.dto.response.pageResponse.PageResponse;
 import com.swp391_be.SWP391_be.dto.response.rawMaterial.CreateRawMaterialResponse;
 import com.swp391_be.SWP391_be.dto.response.rawMaterial.GetRawMaterialResponse;
 import com.swp391_be.SWP391_be.service.IRawMaterialService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +22,7 @@ import java.util.List;
 public class RawMaterialController {
     private final IRawMaterialService rawMaterialService;
     @PostMapping()
-    public ResponseEntity<BaseResponse<CreateRawMaterialResponse>> createMaterial(@RequestBody CreateRawMaterialRequest request){
+    public ResponseEntity<BaseResponse<CreateRawMaterialResponse>> createMaterial(@Valid @RequestBody CreateRawMaterialRequest request){
         CreateRawMaterialResponse response = rawMaterialService.createMaterial(request);
         BaseResponse<CreateRawMaterialResponse> baseResponse = new BaseResponse<CreateRawMaterialResponse>();
         baseResponse.setStatus(HttpStatus.CREATED.value());
