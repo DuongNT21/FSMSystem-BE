@@ -11,6 +11,4 @@ import lombok.Setter;
 @Setter
 public class UpdateRawMaterialRequest {
     private String name;
-    private int quantity;
-    private float importPrice;
 }

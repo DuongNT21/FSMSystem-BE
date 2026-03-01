@@ -7,8 +7,4 @@ import lombok.Setter;
 @Setter
 public class GetRawMaterialCriteriaRequest {
     private String name;
-    private Integer minQuantity;
-    private Integer maxQuantity;
-    private Integer minImportPrice;
-    private Integer maxImportPrice;
 }

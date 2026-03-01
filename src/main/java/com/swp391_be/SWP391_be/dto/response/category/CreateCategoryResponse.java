@@ -1,5 +1,7 @@
 package com.swp391_be.SWP391_be.dto.response.category;
 
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

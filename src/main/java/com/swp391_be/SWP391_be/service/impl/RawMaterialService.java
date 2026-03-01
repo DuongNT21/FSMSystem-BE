@@ -24,9 +24,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -46,18 +43,16 @@ public class RawMaterialService implements IRawMaterialService {
         }
         RawMaterial rawMaterial = new RawMaterial();
         rawMaterial.setName(request.getName());
-        rawMaterial.setQuantity(request.getQuantity());
-        rawMaterial.setImportPrice(request.getImportPrice());
+//        rawMaterial.setQuantity(request.getQuantity());
+//        rawMaterial.setImportPrice(request.getImportPrice());
         rawMaterial.setCreatedAt(LocalDateTime.now());
-        rawMaterial.setImportDate(LocalDateTime.now());
-        rawMaterial.setUserId(userId);
+//        rawMaterial.setImportDate(LocalDateTime.now());
         rawMaterialRepository.save(rawMaterial);
         CreateRawMaterialResponse materialResponse = new CreateRawMaterialResponse();
         materialResponse.setId(rawMaterial.getId());
         materialResponse.setName(rawMaterial.getName());
-
-        // materialResponse.setQuantity(rawMaterial.getQuantity());
-        // materialResponse.setImportPrice(rawMaterial.getImportPrice());
+//        materialResponse.setQuantity(rawMaterial.getQuantity());
+//        materialResponse.setImportPrice(rawMaterial.getImportPrice());
         return materialResponse;
     }
 
@@ -79,8 +74,6 @@ public class RawMaterialService implements IRawMaterialService {
             GetRawMaterialResponse res = new GetRawMaterialResponse();
             res.setId(material.getId());
             res.setName(material.getName());
-            res.setQuantity(material.getQuantity());
-            res.setImportPrice(material.getImportPrice());
             return res;
         });
     }
@@ -92,8 +85,6 @@ public class RawMaterialService implements IRawMaterialService {
         GetRawMaterialResponse response = new GetRawMaterialResponse();
         response.setId(rawMaterial.getId());
         response.setName(rawMaterial.getName());
-        response.setQuantity(rawMaterial.getQuantity());
-        response.setImportPrice(rawMaterial.getImportPrice());
         return response;
     }
 
@@ -102,16 +93,15 @@ public class RawMaterialService implements IRawMaterialService {
         RawMaterial rawMaterial = rawMaterialRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Not found"));
         rawMaterial.setName(request.getName() != null ? request.getName() : rawMaterial.getName());
-        rawMaterial.setQuantity(request.getQuantity() != 0 ? request.getQuantity() : rawMaterial.getQuantity());
-        rawMaterial.setImportPrice(
-                request.getImportPrice() != 0 ? request.getImportPrice() : rawMaterial.getImportPrice());
+//        rawMaterial.setQuantity(request.getQuantity() != 0 ? request.getQuantity() : rawMaterial.getQuantity());
+//        rawMaterial.setImportPrice(request.getImportPrice() != 0 ? request.getImportPrice() : rawMaterial.getImportPrice());
         rawMaterial.setUpdatedAt(LocalDateTime.now());
         rawMaterialRepository.save(rawMaterial);
         GetRawMaterialResponse response = new GetRawMaterialResponse();
         response.setId(rawMaterial.getId());
         response.setName(rawMaterial.getName());
-        response.setQuantity(rawMaterial.getQuantity());
-        response.setImportPrice(rawMaterial.getImportPrice());
+//        response.setQuantity(rawMaterial.getQuantity());
+//        response.setImportPrice(rawMaterial.getImportPrice());
         return response;
     }
 

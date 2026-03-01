@@ -20,22 +20,22 @@ public class RawMaterialSpec {
             List<Predicate> predicates = new ArrayList<>();
             predicates.add(cb.isNull(root.get("deletedAt")));
 
-            if (criteria.getMinQuantity() != null) {
-                predicates.add(cb.greaterThanOrEqualTo(root.get("quantity"), criteria.getMinQuantity()));
-            }
+//            if (criteria.getMinQuantity() != null) {
+//                predicates.add(cb.greaterThanOrEqualTo(root.get("quantity"), criteria.getMinQuantity()));
+//            }
+//
+//            if (criteria.getMaxQuantity() != null) {
+//                predicates.add(cb.lessThanOrEqualTo(root.get("quantity"), criteria.getMaxQuantity()));
+//            }
 
-            if (criteria.getMaxQuantity() != null) {
-                predicates.add(cb.lessThanOrEqualTo(root.get("quantity"), criteria.getMaxQuantity()));
-            }
-
-            if (criteria.getMinImportPrice() != null) {
-                predicates.add(cb.greaterThanOrEqualTo(root.get("importPrice"), criteria.getMinImportPrice()));
-            }
-
-            if (criteria.getMaxImportPrice() != null) {
-                predicates.add(cb.lessThanOrEqualTo(root.get("importPrice"), criteria.getMaxImportPrice())
-                );
-            }
+//            if (criteria.getMinImportPrice() != null) {
+//                predicates.add(cb.greaterThanOrEqualTo(root.get("importPrice"), criteria.getMinImportPrice()));
+//            }
+//
+//            if (criteria.getMaxImportPrice() != null) {
+//                predicates.add(cb.lessThanOrEqualTo(root.get("importPrice"), criteria.getMaxImportPrice())
+//                );
+//            }
 
             if (criteria.getName() != null && !criteria.getName().isBlank()) {
                 predicates.add(cb.like(cb.lower(root.get("name")), "%" + criteria.getName().toLowerCase() + "%"));
