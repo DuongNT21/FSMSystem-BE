@@ -39,7 +39,7 @@ public class PromotionController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt,desc") String sort,
-            @RequestParam(required = false) String name) {
+            @RequestParam(required = false, name = "keyword") String name) {
 
         String[] sortArr = sort.split(",");
         Sort.Direction direction = sortArr.length > 1 && sortArr[1].equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
