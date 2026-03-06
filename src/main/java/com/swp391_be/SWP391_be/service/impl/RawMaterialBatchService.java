@@ -8,6 +8,7 @@ import com.swp391_be.SWP391_be.entity.InventoryLogs;
 import com.swp391_be.SWP391_be.entity.RawMaterial;
 import com.swp391_be.SWP391_be.entity.RawMaterialBatches;
 import com.swp391_be.SWP391_be.enums.EActionType;
+import com.swp391_be.SWP391_be.enums.EBatchStatus;
 import com.swp391_be.SWP391_be.repository.InventoryLogRepository;
 import com.swp391_be.SWP391_be.repository.RawMaterialBatchRepository;
 import com.swp391_be.SWP391_be.repository.RawMaterialRepository;
@@ -16,7 +17,9 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 @Service
@@ -40,7 +43,7 @@ public class RawMaterialBatchService implements IRawMaterialBatchService {
         batch.setImportPrice(request.getImportPrice());
         batch.setOriginalQuantity(request.getOriginalQuantity());
         batch.setRemainQuantity(request.getOriginalQuantity());
-
+        // batch.setStatus(EBatchStatus.ACTIVE);
         rawMaterialBatchRepository.save(batch);
 
         InventoryLogs log = new InventoryLogs();
@@ -64,26 +67,40 @@ public class RawMaterialBatchService implements IRawMaterialBatchService {
 
         boolean isUpdated = false;
 
+        // Validate expire date
         if (request.getExpireDate() != null) {
+
+            if (request.getExpireDate().before(batch.getImportDate())) {
+                throw new RuntimeException("Expire date cannot be before import date");
+            }
+
             batch.setExpireDate(request.getExpireDate());
             isUpdated = true;
         }
 
-        if (request.getImportPrice() > 0) {
+        // Validate import price
+        if (request.getImportPrice() != null) {
+
+            if (request.getImportPrice() < 0) {
+                throw new RuntimeException("Import price cannot be negative");
+            }
+
             batch.setImportPrice(request.getImportPrice());
             isUpdated = true;
         }
 
+        if (!isUpdated) {
+            throw new RuntimeException("No valid fields provided for update");
+        }
+
         rawMaterialBatchRepository.save(batch);
 
-        if (isUpdated) {
-            InventoryLogs log = new InventoryLogs();
-            log.setRawMaterialBatches(batch);
-            log.setActionType(EActionType.Adjust);
-            log.setQuantity(0);
-            log.setCreatedAt(LocalDateTime.now());
-            inventoryLogRepository.save(log);
-        }
+        InventoryLogs log = new InventoryLogs();
+        log.setRawMaterialBatches(batch);
+        log.setActionType(EActionType.Adjust);
+        log.setQuantity(0);
+        log.setCreatedAt(LocalDateTime.now());
+        inventoryLogRepository.save(log);
 
         return mapToResponse(batch);
     }
@@ -121,6 +138,24 @@ public class RawMaterialBatchService implements IRawMaterialBatchService {
         }).toList();
     }
 
+    private EBatchStatus calculateStatus(RawMaterialBatches batch) {
+        LocalDate today = LocalDate.now();
+        LocalDate expireDate = batch.getExpireDate()
+                .toInstant()
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate();
+
+        if (batch.getRemainQuantity() == 0) {
+            return EBatchStatus.OUT_OF_STOCK;
+        }
+
+        if (expireDate.isBefore(today)) {
+            return EBatchStatus.EXPIRED;
+        }
+
+        return EBatchStatus.ACTIVE;
+    }
+
     private RawMaterialBatchResponse mapToResponse(RawMaterialBatches batch) {
 
         RawMaterialBatchResponse response = new RawMaterialBatchResponse();
@@ -132,7 +167,7 @@ public class RawMaterialBatchService implements IRawMaterialBatchService {
         response.setImportPrice(batch.getImportPrice());
         response.setOriginalQuantity(batch.getOriginalQuantity());
         response.setRemainQuantity(batch.getRemainQuantity());
-
+        response.setStatus(calculateStatus(batch));
         if (batch.getRawMaterial() != null) {
             response.setRawMaterialId(batch.getRawMaterial().getId());
             response.setRawMaterialName(batch.getRawMaterial().getName());
