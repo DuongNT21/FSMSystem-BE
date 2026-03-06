@@ -1,6 +1,7 @@
 package com.swp391_be.SWP391_be.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.swp391_be.SWP391_be.enums.EBatchStatus;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -24,6 +25,7 @@ public class RawMaterialBatches extends BaseEntity{
     private float importPrice;
     private int originalQuantity;
     private int remainQuantity;
+    private EBatchStatus status;
     @ManyToOne
     @JoinColumn(name = "raw_material_id", nullable = false)
     @JsonIgnore
