@@ -18,6 +18,11 @@ public class BouquetSpec {
         return (root, query, cb) -> {
 
             List<Predicate> predicates = new ArrayList<>();
+            if (criteria.getCategoryId() != null) {
+                predicates.add(
+                    cb.equal(root.get("category").get("id"), criteria.getCategoryId())
+                );
+            }
 
             if (criteria.getName() != null) {
                 predicates.add(

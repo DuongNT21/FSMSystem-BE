@@ -27,8 +27,11 @@ import com.swp391_be.SWP391_be.dto.response.pageResponse.PageResponse;
 import com.swp391_be.SWP391_be.entity.Bouquet;
 import com.swp391_be.SWP391_be.entity.BouquetImage;
 import com.swp391_be.SWP391_be.entity.BouquetsMaterial;
+import com.swp391_be.SWP391_be.entity.Category;
 import com.swp391_be.SWP391_be.entity.RawMaterial;
 import com.swp391_be.SWP391_be.repository.BouquetRepository;
+import com.swp391_be.SWP391_be.repository.CategoryRepository;
+import com.swp391_be.SWP391_be.repository.RawMaterialBatchRepository;
 import com.swp391_be.SWP391_be.repository.RawMaterialRepository;
 import com.swp391_be.SWP391_be.service.IBouquetService;
 import com.swp391_be.SWP391_be.specification.BouquetSpec;
@@ -42,6 +45,8 @@ public class BouquetService implements IBouquetService {
 
   private final BouquetRepository repository;
   private final RawMaterialRepository rawMaterialrepository;
+  private final RawMaterialBatchRepository rawMaterialBatchRepository;
+  private final CategoryRepository categoryRepository;
   private final IImageService imageService;
 
   @Override
@@ -73,6 +78,11 @@ public class BouquetService implements IBouquetService {
     bouquet.setPrice(bouquetRequest.getPrice());
     bouquet.setStatus(bouquetRequest.getStatus());
     bouquet.setDescription(bouquetRequest.getDescription());
+    if (bouquetRequest.getCategoryId() != null) {
+      Category category = categoryRepository.findById(bouquetRequest.getCategoryId())
+          .orElseThrow(() -> new BadHttpRequestException("Category not found"));
+      bouquet.setCategory(category);
+    }
 
     // Create bouquet images
     for (MultipartFile file : images) {
@@ -142,6 +152,13 @@ public class BouquetService implements IBouquetService {
     bouquet.setDescription(bouquetRequest.getDescription());
     bouquet.setPrice(bouquetRequest.getPrice());
     bouquet.setStatus(bouquetRequest.getStatus());
+    if (bouquetRequest.getCategoryId() != null) {
+      Category category = categoryRepository.findById(bouquetRequest.getCategoryId())
+          .orElseThrow(() -> new BadHttpRequestException("Category not found"));
+      bouquet.setCategory(category);
+    } else {
+      bouquet.setCategory(null);
+    }
 
     // Delete bouquet images
     if (bouquetRequest.getDeleteImages() != null) {
@@ -198,26 +215,22 @@ public class BouquetService implements IBouquetService {
       if (material.getQuantity() <= 0) {
         throw new BadHttpRequestException("Material quantity must be greater than 0");
       }
-      Optional<RawMaterial> optionalRawMaterial = rawMaterialrepository.findById(material.getId());
-      if (!optionalRawMaterial.isPresent()) {
-        throw new BadHttpRequestException("Raw material not found");
+      RawMaterial rawMaterial = rawMaterialrepository.findById(material.getId())
+          .orElseThrow(() -> new BadHttpRequestException("Raw material not found"));
+
+      int availableQuantity = rawMaterialBatchRepository.sumRemainQuantityByRawMaterialId(rawMaterial.getId());
+      if (availableQuantity < material.getQuantity()) {
+        throw new BadHttpRequestException("Not enough raw material in stock: " + rawMaterial.getName()
+            + " (available: " + availableQuantity + ", required: " + material.getQuantity() + ")");
       }
-      RawMaterial rawMaterial = optionalRawMaterial.get();
 
       Optional<BouquetsMaterial> existing = bouquet.getBouquetsMaterials().stream()
           .filter(bm -> bm.getRawMaterial().getId() == rawMaterial.getId())
           .findFirst();
 
       if (existing.isPresent()) {
-        int newQty = material.getQuantity();
-        if (rawMaterial.getQuantity() < newQty) {
-          throw new BadHttpRequestException("Not enough raw material: " + rawMaterial.getName());
-        }
-        existing.get().setQuantity(newQty);
+        existing.get().setQuantity(material.getQuantity());
       } else {
-        if (rawMaterial.getQuantity() < material.getQuantity()) {
-          throw new BadHttpRequestException("Not enough raw material: " + rawMaterial.getName());
-        }
         BouquetsMaterial bouquetMaterial = new BouquetsMaterial();
         bouquetMaterial.setRawMaterial(rawMaterial);
         bouquetMaterial.setQuantity(material.getQuantity());

@@ -7,7 +7,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -17,8 +16,6 @@ import java.util.List;
 @Setter
 public class RawMaterial extends BaseEntity {
     private String name;
-    private int userId;
-    private LocalDateTime importDate;
 
 
     @OneToMany(mappedBy = "rawMaterial")

@@ -12,5 +12,6 @@ public class CreateBouquetRequest {
   private float price;
   private int status;
   private String description;
-  private List<MaterialReq> materials; 
+  private Integer categoryId;
+  private List<MaterialReq> materials;
 }
