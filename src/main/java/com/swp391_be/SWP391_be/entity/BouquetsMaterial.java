@@ -27,6 +27,10 @@ public class BouquetsMaterial extends BaseEntity{
     @JsonIgnore
     private RawMaterial rawMaterial;
 
+    public Integer getRawMaterialId() {
+        return rawMaterial != null ? rawMaterial.getId() : null;
+    }
+
     public String getRawMaterialName() {
         return rawMaterial != null ? rawMaterial.getName() : null;
     }

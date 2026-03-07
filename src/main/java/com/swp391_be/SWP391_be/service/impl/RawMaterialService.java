@@ -7,8 +7,11 @@ import com.swp391_be.SWP391_be.dto.response.pageResponse.PageResponse;
 import com.swp391_be.SWP391_be.dto.response.rawMaterial.CreateRawMaterialResponse;
 import com.swp391_be.SWP391_be.dto.response.rawMaterial.GetRawMaterialResponse;
 import com.swp391_be.SWP391_be.entity.RawMaterial;
+import com.swp391_be.SWP391_be.entity.RawMaterialBatches;
+import com.swp391_be.SWP391_be.enums.EBatchStatus;
 import com.swp391_be.SWP391_be.exception.BadHttpRequestException;
 import com.swp391_be.SWP391_be.exception.NotFoundException;
+import com.swp391_be.SWP391_be.repository.RawMaterialBatchRepository;
 import com.swp391_be.SWP391_be.repository.RawMaterialRepository;
 import com.swp391_be.SWP391_be.service.IRawMaterialService;
 import com.swp391_be.SWP391_be.specification.RawMaterialSpec;
@@ -29,7 +32,17 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class RawMaterialService implements IRawMaterialService {
     private final RawMaterialRepository rawMaterialRepository;
+    private final RawMaterialBatchRepository rawMaterialBatchRepository;
     private final AuthenUtil authenUtil;
+
+    private float resolveUnitPrice(int rawMaterialId) {
+        return rawMaterialBatchRepository
+                .findLatestBatchByRawMaterialIdAndStatus(rawMaterialId, EBatchStatus.ACTIVE)
+                .map(batch -> batch.getOriginalQuantity() > 0
+                        ? batch.getImportPrice() / batch.getOriginalQuantity()
+                        : 0f)
+                .orElse(0f);
+    }
 
     @Override
     @Transactional
@@ -78,6 +91,7 @@ public class RawMaterialService implements IRawMaterialService {
             GetRawMaterialResponse res = new GetRawMaterialResponse();
             res.setId(material.getId());
             res.setName(material.getName());
+            res.setUnitPrice(resolveUnitPrice(material.getId()));
             return res;
         });
     }
@@ -90,6 +104,7 @@ public class RawMaterialService implements IRawMaterialService {
         GetRawMaterialResponse response = new GetRawMaterialResponse();
         response.setId(rawMaterial.getId());
         response.setName(rawMaterial.getName());
+        response.setUnitPrice(resolveUnitPrice(rawMaterial.getId()));
         return response;
     }
 

@@ -8,6 +8,7 @@ import com.swp391_be.SWP391_be.dto.request.bouquet.CreateBouquetRequest;
 import com.swp391_be.SWP391_be.dto.request.bouquet.GetBouquetCriteriaRequest;
 import com.swp391_be.SWP391_be.dto.request.bouquet.UpdateBouquetRequest;
 import com.swp391_be.SWP391_be.dto.response.BaseResponse;
+import com.swp391_be.SWP391_be.dto.response.bouquet.BouquetCostResponse;
 import com.swp391_be.SWP391_be.dto.response.bouquet.BouquetListResponse;
 import com.swp391_be.SWP391_be.dto.response.pageResponse.PageResponse;
 import com.swp391_be.SWP391_be.entity.Bouquet;
@@ -105,6 +106,17 @@ public class BouquetController {
   @DeleteMapping("/delete")
   public void delete(@RequestParam int id) {
     bouquetService.deleteBouquet(id);
+  }
+
+  @Operation(summary = "Get cost breakdown of a bouquet based on latest active batch prices")
+  @GetMapping("/cost")
+  public ResponseEntity<BaseResponse<BouquetCostResponse>> getCost(@RequestParam int id) {
+    BouquetCostResponse cost = bouquetService.getBouquetCost(id);
+    BaseResponse<BouquetCostResponse> response = new BaseResponse<>();
+    response.setStatus(HttpStatus.OK.value());
+    response.setMessage("Bouquet cost");
+    response.setData(cost);
+    return ResponseEntity.ok(response);
   }
 
 }
