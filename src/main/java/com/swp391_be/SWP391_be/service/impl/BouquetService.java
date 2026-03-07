@@ -9,6 +9,7 @@ import com.swp391_be.SWP391_be.exception.BadHttpRequestException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
@@ -22,7 +23,10 @@ import com.swp391_be.SWP391_be.dto.request.bouquet.CreateBouquetRequest;
 import com.swp391_be.SWP391_be.dto.request.bouquet.GetBouquetCriteriaRequest;
 import com.swp391_be.SWP391_be.dto.request.bouquet.MaterialReq;
 import com.swp391_be.SWP391_be.dto.request.bouquet.UpdateBouquetRequest;
+import com.swp391_be.SWP391_be.dto.response.bouquet.BouquetCostResponse;
 import com.swp391_be.SWP391_be.dto.response.bouquet.BouquetListResponse;
+import com.swp391_be.SWP391_be.entity.RawMaterialBatches;
+import com.swp391_be.SWP391_be.enums.EBatchStatus;
 import com.swp391_be.SWP391_be.dto.response.pageResponse.PageResponse;
 import com.swp391_be.SWP391_be.entity.Bouquet;
 import com.swp391_be.SWP391_be.entity.BouquetImage;
@@ -269,5 +273,35 @@ public class BouquetService implements IBouquetService {
       return "Bouquet status must be 0 or 1";
     }
     return "";
+  }
+
+  @Override
+  public BouquetCostResponse getBouquetCost(int id) {
+    Bouquet bouquet = repository.findById(id)
+        .orElseThrow(() -> new BadHttpRequestException("Bouquet not found"));
+
+    List<BouquetCostResponse.MaterialCostItem> breakdown = new ArrayList<>();
+    float totalCost = 0f;
+
+    for (BouquetsMaterial bm : bouquet.getBouquetsMaterials()) {
+      float unitPrice = rawMaterialBatchRepository
+          .findLatestBatchByRawMaterialIdAndStatus(bm.getRawMaterial().getId(), EBatchStatus.ACTIVE)
+          .map(batch -> batch.getOriginalQuantity() > 0
+              ? batch.getImportPrice() / batch.getOriginalQuantity()
+              : 0f)
+          .orElse(0f);
+
+      float subtotal = unitPrice * bm.getQuantity();
+      totalCost += subtotal;
+
+      breakdown.add(new BouquetCostResponse.MaterialCostItem(
+          bm.getRawMaterial().getId(),
+          bm.getRawMaterial().getName(),
+          bm.getQuantity(),
+          unitPrice,
+          subtotal));
+    }
+
+    return new BouquetCostResponse(id, totalCost, breakdown);
   }
 }
