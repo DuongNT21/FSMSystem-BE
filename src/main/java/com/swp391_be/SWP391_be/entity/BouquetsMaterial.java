@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToOne;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -27,4 +26,8 @@ public class BouquetsMaterial extends BaseEntity{
     @JoinColumn(name = "raw_material_id", nullable = false)
     @JsonIgnore
     private RawMaterial rawMaterial;
+
+    public String getRawMaterialName() {
+        return rawMaterial != null ? rawMaterial.getName() : null;
+    }
 }
