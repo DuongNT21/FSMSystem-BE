@@ -1,5 +1,6 @@
 package com.swp391_be.SWP391_be.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.swp391_be.SWP391_be.enums.EOrderStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -22,6 +23,11 @@ public class Order extends BaseEntity{
     private String phoneNumber;
     private float totalPrice;
     private String deliveryAddress;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    @JsonIgnore
+    private User user;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> orderItems;
