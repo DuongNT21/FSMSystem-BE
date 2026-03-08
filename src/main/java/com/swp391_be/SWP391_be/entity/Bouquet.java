@@ -42,4 +42,7 @@ public class Bouquet extends BaseEntity {
     @Fetch(FetchMode.JOIN)
     private List<BouquetsMaterial> bouquetsMaterials = new ArrayList<>();
 
+    @OneToMany(mappedBy = "bouquet", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Fetch(FetchMode.JOIN)
+    private List<Review> reviews = new ArrayList<>();
 }

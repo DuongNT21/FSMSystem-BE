@@ -18,10 +18,12 @@ import java.util.List;
 public class Order extends BaseEntity{
     @Enumerated(EnumType.STRING)
     private EOrderStatus orderStatus;
+    private String fullName;
+    private String phoneNumber;
     private float totalPrice;
     private String deliveryAddress;
 
-    @OneToMany(mappedBy = "order")
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> orderItems;
 
     @OneToMany(mappedBy = "order")

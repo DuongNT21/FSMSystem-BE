@@ -60,6 +60,7 @@ public class RawMaterialService implements IRawMaterialService {
             GetRawMaterialResponse res = new GetRawMaterialResponse();
             res.setId(material.getId());
             res.setName(material.getName());
+            res.setQuantity(material.getTotalQuantity());
             return res;
         });
     }
@@ -70,6 +71,7 @@ public class RawMaterialService implements IRawMaterialService {
         GetRawMaterialResponse response = new GetRawMaterialResponse();
         response.setId(rawMaterial.getId());
         response.setName(rawMaterial.getName());
+        response.setQuantity(rawMaterial.getTotalQuantity());
         return response;
     }
 
