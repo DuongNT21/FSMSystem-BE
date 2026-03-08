@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.Formula;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -18,7 +17,7 @@ import java.util.List;
 @Setter
 public class RawMaterial extends BaseEntity {
     private String name;
-
+  
     @Formula("""
         (SELECT COALESCE(SUM(rmb.remain_quantity),0)
          FROM raw_material_batches rmb

@@ -9,6 +9,7 @@ import com.swp391_be.SWP391_be.exception.BadHttpRequestException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
@@ -22,12 +23,20 @@ import com.swp391_be.SWP391_be.dto.request.bouquet.CreateBouquetRequest;
 import com.swp391_be.SWP391_be.dto.request.bouquet.GetBouquetCriteriaRequest;
 import com.swp391_be.SWP391_be.dto.request.bouquet.MaterialReq;
 import com.swp391_be.SWP391_be.dto.request.bouquet.UpdateBouquetRequest;
+import com.swp391_be.SWP391_be.dto.response.bouquet.BouquetCostResponse;
 import com.swp391_be.SWP391_be.dto.response.bouquet.BouquetListResponse;
+import com.swp391_be.SWP391_be.entity.RawMaterialBatches;
+import com.swp391_be.SWP391_be.enums.EBatchStatus;
 import com.swp391_be.SWP391_be.dto.response.pageResponse.PageResponse;
 import com.swp391_be.SWP391_be.entity.Bouquet;
 import com.swp391_be.SWP391_be.entity.BouquetImage;
 import com.swp391_be.SWP391_be.entity.BouquetsMaterial;
+import com.swp391_be.SWP391_be.entity.Category;
+import com.swp391_be.SWP391_be.entity.RawMaterial;
 import com.swp391_be.SWP391_be.repository.BouquetRepository;
+import com.swp391_be.SWP391_be.repository.CategoryRepository;
+import com.swp391_be.SWP391_be.repository.RawMaterialBatchRepository;
+import com.swp391_be.SWP391_be.repository.RawMaterialRepository;
 import com.swp391_be.SWP391_be.service.IBouquetService;
 import com.swp391_be.SWP391_be.specification.BouquetSpec;
 import com.swp391_be.SWP391_be.service.IImageService;
@@ -39,6 +48,9 @@ import lombok.RequiredArgsConstructor;
 public class BouquetService implements IBouquetService {
 
   private final BouquetRepository repository;
+  private final RawMaterialRepository rawMaterialrepository;
+  private final RawMaterialBatchRepository rawMaterialBatchRepository;
+  private final CategoryRepository categoryRepository;
   private final IImageService imageService;
 
   @Override
@@ -70,6 +82,11 @@ public class BouquetService implements IBouquetService {
     bouquet.setPrice(bouquetRequest.getPrice());
     bouquet.setStatus(bouquetRequest.getStatus());
     bouquet.setDescription(bouquetRequest.getDescription());
+    if (bouquetRequest.getCategoryId() != null) {
+      Category category = categoryRepository.findById(bouquetRequest.getCategoryId())
+          .orElseThrow(() -> new BadHttpRequestException("Category not found"));
+      bouquet.setCategory(category);
+    }
 
     // Create bouquet images
     for (MultipartFile file : images) {
@@ -90,14 +107,8 @@ public class BouquetService implements IBouquetService {
     }
 
     // Create bouquet materials
-    // for (MaterialReq material : bouquetRequest.getMaterials()) {
-    // BouquetsMaterial bouquetMaterials = new BouquetsMaterial();
-    // TODO GET RAW MATERIAL
-    // bouquetMaterials.setRawMaterial(material.getName());
-    // bouquetMaterials.setQuantity(material.getQuantity());
-    // bouquetMaterials.setBouquet(bouquet);
-    // bouquet.getBouquetsMaterials().add(bouquetMaterials);
-    // }
+    processMaterials(bouquet, bouquetRequest.getMaterials());
+
     return repository.save(bouquet);
   }
 
@@ -128,6 +139,7 @@ public class BouquetService implements IBouquetService {
 
   @Override
   public Bouquet updateBouquet(UpdateBouquetRequest bouquetRequest, List<MultipartFile> images) {
+    
     Optional<Bouquet> optionalBouquet = repository.findById(bouquetRequest.getId());
     if (!optionalBouquet.isPresent()) {
       throw new BadHttpRequestException("Bouquet not found");
@@ -144,6 +156,13 @@ public class BouquetService implements IBouquetService {
     bouquet.setDescription(bouquetRequest.getDescription());
     bouquet.setPrice(bouquetRequest.getPrice());
     bouquet.setStatus(bouquetRequest.getStatus());
+    if (bouquetRequest.getCategoryId() != null) {
+      Category category = categoryRepository.findById(bouquetRequest.getCategoryId())
+          .orElseThrow(() -> new BadHttpRequestException("Category not found"));
+      bouquet.setCategory(category);
+    } else {
+      bouquet.setCategory(null);
+    }
 
     // Delete bouquet images
     if (bouquetRequest.getDeleteImages() != null) {
@@ -180,6 +199,9 @@ public class BouquetService implements IBouquetService {
       }
     }
 
+    // Update bouquet materials
+    processMaterials(bouquet, bouquetRequest.getMaterials());
+
     return repository.save(bouquet);
   }
 
@@ -187,6 +209,39 @@ public class BouquetService implements IBouquetService {
   public PageResponse<BouquetListResponse> getBouquets(Pageable pageable, GetBouquetCriteriaRequest getBouquetRequest) {
     Page<Bouquet> page = repository.findAll(BouquetSpec.byCriteria(getBouquetRequest), pageable);
     return PageResponse.fromPage(page, BouquetListResponse::new);
+  }
+
+  private void processMaterials(Bouquet bouquet, List<MaterialReq> materials) {
+    if (materials == null || materials.isEmpty()) {
+      return;
+    }
+    for (MaterialReq material : materials) {
+      if (material.getQuantity() <= 0) {
+        throw new BadHttpRequestException("Material quantity must be greater than 0");
+      }
+      RawMaterial rawMaterial = rawMaterialrepository.findById(material.getId())
+          .orElseThrow(() -> new BadHttpRequestException("Raw material not found"));
+
+      int availableQuantity = rawMaterialBatchRepository.sumRemainQuantityByRawMaterialId(rawMaterial.getId());
+      if (availableQuantity < material.getQuantity()) {
+        throw new BadHttpRequestException("Not enough raw material in stock: " + rawMaterial.getName()
+            + " (available: " + availableQuantity + ", required: " + material.getQuantity() + ")");
+      }
+
+      Optional<BouquetsMaterial> existing = bouquet.getBouquetsMaterials().stream()
+          .filter(bm -> bm.getRawMaterial().getId() == rawMaterial.getId())
+          .findFirst();
+
+      if (existing.isPresent()) {
+        existing.get().setQuantity(material.getQuantity());
+      } else {
+        BouquetsMaterial bouquetMaterial = new BouquetsMaterial();
+        bouquetMaterial.setRawMaterial(rawMaterial);
+        bouquetMaterial.setQuantity(material.getQuantity());
+        bouquetMaterial.setBouquet(bouquet);
+        bouquet.getBouquetsMaterials().add(bouquetMaterial);
+      }
+    }
   }
 
   private String validateBouquetRequestUpdate(UpdateBouquetRequest bouquetRequest, Bouquet bouquet) {
@@ -218,5 +273,35 @@ public class BouquetService implements IBouquetService {
       return "Bouquet status must be 0 or 1";
     }
     return "";
+  }
+
+  @Override
+  public BouquetCostResponse getBouquetCost(int id) {
+    Bouquet bouquet = repository.findById(id)
+        .orElseThrow(() -> new BadHttpRequestException("Bouquet not found"));
+
+    List<BouquetCostResponse.MaterialCostItem> breakdown = new ArrayList<>();
+    float totalCost = 0f;
+
+    for (BouquetsMaterial bm : bouquet.getBouquetsMaterials()) {
+      float unitPrice = rawMaterialBatchRepository
+          .findLatestBatchByRawMaterialIdAndStatus(bm.getRawMaterial().getId(), EBatchStatus.ACTIVE)
+          .map(batch -> batch.getOriginalQuantity() > 0
+              ? batch.getImportPrice() / batch.getOriginalQuantity()
+              : 0f)
+          .orElse(0f);
+
+      float subtotal = unitPrice * bm.getQuantity();
+      totalCost += subtotal;
+
+      breakdown.add(new BouquetCostResponse.MaterialCostItem(
+          bm.getRawMaterial().getId(),
+          bm.getRawMaterial().getName(),
+          bm.getQuantity(),
+          unitPrice,
+          subtotal));
+    }
+
+    return new BouquetCostResponse(id, totalCost, breakdown);
   }
 }

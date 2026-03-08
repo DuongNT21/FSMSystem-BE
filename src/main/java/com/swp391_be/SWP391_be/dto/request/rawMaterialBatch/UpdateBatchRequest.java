@@ -10,5 +10,5 @@ import java.util.Date;
 public class UpdateBatchRequest {
     private Date expireDate;
 
-    private float importPrice;
+    private Float importPrice;
 }

@@ -10,4 +10,5 @@ public class GetBouquetCriteriaRequest {
   private Integer status;
   private Float minPrice;
   private Float maxPrice;
+  private Integer categoryId;
 }
