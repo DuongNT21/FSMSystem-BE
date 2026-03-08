@@ -28,6 +28,9 @@ public class User extends BaseEntity implements UserDetails {
     @JsonIgnore
     private Role role;
 
+    @OneToMany(mappedBy = "user")
+    private List<Order> orders;
+
     @OneToOne(mappedBy = "user")
     private UserProfile userProfile;
 
