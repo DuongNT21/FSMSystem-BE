@@ -52,6 +52,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/bouquets/**").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/api/bouquets/**").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/api/bouquets/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/order").permitAll()
                         
                         .requestMatchers("/api/users", "/api/auth", "/swagger-ui/**", "/v3/api-docs/**",
                                 "/api/material/**", "/api/register")

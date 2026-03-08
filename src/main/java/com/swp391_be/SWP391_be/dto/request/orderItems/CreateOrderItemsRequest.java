@@ -1,4 +1,4 @@
-package com.swp391_be.SWP391_be.dto.response.rawMaterial;
+package com.swp391_be.SWP391_be.dto.request.orderItems;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,10 +9,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @Getter
 @Setter
-public class GetRawMaterialResponse {
-    private int id;
-    private String name;
+public class CreateOrderItemsRequest {
+    private int bouquetId;
     private int quantity;
-    private float unitPrice;
-
 }

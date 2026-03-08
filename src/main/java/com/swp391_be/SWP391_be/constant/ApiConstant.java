@@ -17,4 +17,8 @@ public class ApiConstant {
     public static class EMPLOYEE {
         public static final String EMPLOYEE = "/employee";
     }
+
+    public static class ORDER {
+        public static final String ORDER = "/order";
+    }
 }
