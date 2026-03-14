@@ -34,6 +34,9 @@ public class User extends BaseEntity implements UserDetails {
     @OneToOne(mappedBy = "user")
     private UserProfile userProfile;
 
+    @OneToMany(mappedBy = "user")
+    private List<Review> reviews;
+
     @OneToOne(mappedBy = "user")
     private Employee employee;
 
