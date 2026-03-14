@@ -1,6 +1,11 @@
 package com.swp391_be.SWP391_be.controller;
 
-import org.springframework.web.bind.annotation.RestController;
+import com.swp391_be.SWP391_be.constant.ApiConstant;
+import com.swp391_be.SWP391_be.dto.request.review.CreateReviewRequest;
+import com.swp391_be.SWP391_be.dto.response.review.CreateReviewResponse;
+import com.swp391_be.SWP391_be.dto.response.review.GetReviewResponse;
+import com.swp391_be.SWP391_be.service.IReviewService;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -14,12 +19,7 @@ import com.swp391_be.SWP391_be.dto.response.pageResponse.PageResponse;
 import com.swp391_be.SWP391_be.entity.Bouquet;
 import com.swp391_be.SWP391_be.exception.GlobalException;
 
-import org.springframework.web.bind.annotation.RequestBody;
 import lombok.RequiredArgsConstructor;
-
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RequestPart;
 
 import com.swp391_be.SWP391_be.service.IBouquetService;
 
@@ -35,17 +35,13 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 
 @RestController
 @RequestMapping("/api/bouquets")
 @RequiredArgsConstructor
 public class BouquetController {
   private final IBouquetService bouquetService;
+  private final IReviewService reviewService;
 
   @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public ResponseEntity<BaseResponse<Bouquet>> create(
@@ -116,6 +112,33 @@ public class BouquetController {
     response.setStatus(HttpStatus.OK.value());
     response.setMessage("Bouquet cost");
     response.setData(cost);
+    return ResponseEntity.ok(response);
+  }
+
+  @PostMapping("/{id}/review")
+  public ResponseEntity<BaseResponse<CreateReviewResponse>> createReview(@PathVariable int id, @RequestBody CreateReviewRequest createReviewRequest){
+    CreateReviewResponse createReviewResponse = reviewService.createReview(id, createReviewRequest);
+    BaseResponse<CreateReviewResponse> baseResponse = new BaseResponse<>();
+    baseResponse.setData(createReviewResponse);
+    baseResponse.setMessage("Create review successfully");
+    baseResponse.setStatus(HttpStatus.CREATED.value());
+    return ResponseEntity.status(HttpStatus.CREATED).body(baseResponse);
+  }
+
+  @GetMapping("/{id}/review")
+  public ResponseEntity<BaseResponse<PageResponse<GetReviewResponse>>> getReviews(
+          @PathVariable int id,
+          @RequestParam(defaultValue = "0") int page,
+          @RequestParam(defaultValue = "10") int size,
+          @RequestParam(defaultValue = "desc") String sort) {
+
+    PageResponse<GetReviewResponse> data = reviewService.getAllReviews(id, page, size, sort);
+
+    BaseResponse<PageResponse<GetReviewResponse>> response = new BaseResponse<>();
+    response.setStatus(HttpStatus.OK.value());
+    response.setMessage("Get review list successfully");
+    response.setData(data);
+
     return ResponseEntity.ok(response);
   }
 
