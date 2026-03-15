@@ -78,6 +78,16 @@ public class PromotionController {
         return ResponseEntity.ok(baseResponse);
     }
 
+    @GetMapping("/active")
+    public ResponseEntity<BaseResponse<PromotionResponse>> getActivePromotion() {
+        PromotionResponse response = promotionService.getCurrentPromotion();
+        BaseResponse<PromotionResponse> baseResponse = new BaseResponse<>();
+        baseResponse.setData(response);
+        baseResponse.setMessage("Get active promotion successfully");
+        baseResponse.setStatus(HttpStatus.OK.value());
+        return ResponseEntity.ok(baseResponse);
+    }
+
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<BaseResponse<Void>> deletePromotion(@PathVariable Integer id) {

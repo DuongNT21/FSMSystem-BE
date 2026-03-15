@@ -27,4 +27,7 @@ public interface PromotionRepository extends JpaRepository<Promotion, Integer> {
         @Query("SELECT COUNT(p) FROM Promotion p WHERE (:startDate BETWEEN p.startDate AND p.endDate OR :endDate BETWEEN p.startDate AND p.endDate) AND p.id <> :promotionId AND p.isActive = true AND p.deletedAt IS NULL")
     int countOverlappingPromotions(@Param("promotionId") Long promotionId, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
 
+    @Query("SELECT p FROM Promotion p WHERE p.isActive = true AND :today BETWEEN p.startDate AND p.endDate AND p.deletedAt IS NULL LIMIT 1")
+    Optional<Promotion> findActivePromotion(@Param("today") LocalDate today);
+
 }

@@ -14,4 +14,5 @@ public interface IPromotionService {
     PageResponse<PromotionResponse> getAllPromotions(String name,Boolean status, Pageable pageable);
     PromotionResponse getPromotionByCode(String code, double orderValue);
     void deletePromotion(Integer id);
+    PromotionResponse getCurrentPromotion();
 }

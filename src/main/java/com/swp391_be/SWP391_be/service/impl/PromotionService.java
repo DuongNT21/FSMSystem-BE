@@ -132,6 +132,14 @@ public class PromotionService implements IPromotionService {
     }
 
     @Override
+    public PromotionResponse getCurrentPromotion() {
+        LocalDate today = LocalDate.now();
+        Promotion promotion = promotionRepository.findActivePromotion(today)
+                .orElseThrow(() -> new NotFoundException("No active promotion found"));
+        return new PromotionResponse(promotion);
+    }
+
+    @Override
     @Transactional
     public void deletePromotion(Integer id) {
         Promotion promotion = promotionRepository.findById(id)
