@@ -32,4 +32,5 @@ public class Promotion extends BaseEntity{
     private LocalDate endDate;
     private float minOrderValue;
     private float maxDiscountValue;
+    private boolean isActive;
 }
