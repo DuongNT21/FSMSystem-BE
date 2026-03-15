@@ -1,12 +1,15 @@
 package com.swp391_be.SWP391_be.controller;
 
 import com.swp391_be.SWP391_be.dto.request.promotion.CreatePromotionRequest;
+import com.swp391_be.SWP391_be.dto.request.promotion.UpdatePromotionRequest;
 import com.swp391_be.SWP391_be.dto.response.BaseResponse;
 import com.swp391_be.SWP391_be.dto.response.pageResponse.PageResponse;
 import com.swp391_be.SWP391_be.dto.response.promotion.PromotionResponse;
 import com.swp391_be.SWP391_be.entity.Promotion;
 import com.swp391_be.SWP391_be.service.IPromotionService;
 import lombok.RequiredArgsConstructor;
+
+import org.hibernate.sql.Update;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -32,6 +35,16 @@ public class PromotionController {
         baseResponse.setStatus(HttpStatus.CREATED.value());
         return ResponseEntity.status(HttpStatus.CREATED).body(baseResponse);
     }
+    @PutMapping
+    @PreAuthorize("hasAuthority('Admin')")
+    public ResponseEntity<BaseResponse<PromotionResponse>> updatePromotion(@RequestBody UpdatePromotionRequest request) {
+        PromotionResponse response = promotionService.updatePromotion(request);
+        BaseResponse<PromotionResponse> baseResponse = new BaseResponse<>();
+        baseResponse.setData(response);
+        baseResponse.setMessage("Create promotion successfully");
+        baseResponse.setStatus(HttpStatus.CREATED.value());
+        return ResponseEntity.status(HttpStatus.CREATED).body(baseResponse);
+    }
 
     @GetMapping
     @PreAuthorize("hasAnyAuthority('Admin', 'Staff')")
@@ -39,13 +52,14 @@ public class PromotionController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt,desc") String sort,
-            @RequestParam(required = false, name = "keyword") String name) {
+            @RequestParam(required = false, name = "keyword") String name,
+            @RequestParam(required = false, name = "status") Boolean status ) {
 
         String[] sortArr = sort.split(",");
         Sort.Direction direction = sortArr.length > 1 && sortArr[1].equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortArr[0]));
 
-        PageResponse<PromotionResponse> response = promotionService.getAllPromotions(name, pageable);
+        PageResponse<PromotionResponse> response = promotionService.getAllPromotions(name,status, pageable);
         BaseResponse<PageResponse<PromotionResponse>> baseResponse = new BaseResponse<>();
         baseResponse.setData(response);
         baseResponse.setMessage("Get promotions successfully");

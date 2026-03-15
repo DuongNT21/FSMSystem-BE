@@ -32,6 +32,7 @@ import java.util.List;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -81,13 +82,12 @@ public class BouquetController {
   public PageResponse<BouquetListResponse> getBouquet(
       @RequestParam(defaultValue = "0") int page,
       @RequestParam(defaultValue = "10") int size,
-      @RequestParam(defaultValue = "createdAt,asc") String sort,
+      @RequestParam(defaultValue = "createdAt") String sortBy,
+      @RequestParam(defaultValue = "desc") String sortOrder,
       @ModelAttribute GetBouquetCriteriaRequest request) {
-    Sort sortObj = Sort.by(
-        sort.split(",")[1].equalsIgnoreCase("desc")
-            ? Sort.Direction.DESC
-            : Sort.Direction.ASC,
-        sort.split(",")[0]);
+    
+    Direction direction = sortOrder.equalsIgnoreCase("desc") ? Direction.DESC : Direction.ASC;
+    Sort sortObj = Sort.by(direction, sortBy);
     Pageable pageable = PageRequest.of(page, size, sortObj);
     return bouquetService.getBouquets(pageable, request);
   }
@@ -116,7 +116,8 @@ public class BouquetController {
   }
 
   @PostMapping("/{id}/review")
-  public ResponseEntity<BaseResponse<CreateReviewResponse>> createReview(@PathVariable int id, @RequestBody CreateReviewRequest createReviewRequest){
+  public ResponseEntity<BaseResponse<CreateReviewResponse>> createReview(@PathVariable int id,
+      @RequestBody CreateReviewRequest createReviewRequest) {
     CreateReviewResponse createReviewResponse = reviewService.createReview(id, createReviewRequest);
     BaseResponse<CreateReviewResponse> baseResponse = new BaseResponse<>();
     baseResponse.setData(createReviewResponse);
@@ -127,10 +128,10 @@ public class BouquetController {
 
   @GetMapping("/{id}/review")
   public ResponseEntity<BaseResponse<PageResponse<GetReviewResponse>>> getReviews(
-          @PathVariable int id,
-          @RequestParam(defaultValue = "0") int page,
-          @RequestParam(defaultValue = "10") int size,
-          @RequestParam(defaultValue = "desc") String sort) {
+      @PathVariable int id,
+      @RequestParam(defaultValue = "0") int page,
+      @RequestParam(defaultValue = "10") int size,
+      @RequestParam(defaultValue = "desc") String sort) {
 
     PageResponse<GetReviewResponse> data = reviewService.getAllReviews(id, page, size, sort);
 
@@ -142,4 +143,23 @@ public class BouquetController {
     return ResponseEntity.ok(response);
   }
 
+  @GetMapping("/trending-today")
+  public ResponseEntity<BaseResponse<List<Bouquet>>> getMostRatedToday() {
+    List<Bouquet> bouquets = bouquetService.getMostRatedBouquetsToday();
+    BaseResponse<List<Bouquet>> response = new BaseResponse<>();
+    response.setData(bouquets);
+    response.setMessage("Most rated bouquet today");
+    response.setStatus(HttpStatus.OK.value());
+    return ResponseEntity.ok(response);
+  }
+
+  @GetMapping("/top-rated")
+  public ResponseEntity<BaseResponse<List<Bouquet>>> getTopRated() {
+    List<Bouquet> bouquets = bouquetService.getTop4RatedBouquets();
+    BaseResponse<List<Bouquet>> response = new BaseResponse<>();
+    response.setData(bouquets);
+    response.setMessage("Top 4 rated bouquets");
+    response.setStatus(HttpStatus.OK.value());
+    return ResponseEntity.ok(response);
+  }
 }

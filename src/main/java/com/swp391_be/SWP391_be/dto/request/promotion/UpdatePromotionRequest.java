@@ -1,11 +1,12 @@
 package com.swp391_be.SWP391_be.dto.request.promotion;
 
-import lombok.Data;
-
 import java.time.LocalDate;
 
-@Data
-public class CreatePromotionRequest {
+import lombok.Data;
+
+  @Data
+public class UpdatePromotionRequest {
+    private Integer id;
     private String name;
     private String code;
     private String description;
@@ -15,5 +16,4 @@ public class CreatePromotionRequest {
     private float minOrderValue;
     private float maxDiscountValue;
     private boolean status;
-
 }

@@ -1,6 +1,7 @@
 package com.swp391_be.SWP391_be.service.impl;
 
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -9,6 +10,9 @@ import com.swp391_be.SWP391_be.exception.BadHttpRequestException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
@@ -16,6 +20,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.apache.logging.log4j.util.Strings;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Page;
 
 import com.swp391_be.SWP391_be.constant.ApiConstant;
@@ -139,7 +144,7 @@ public class BouquetService implements IBouquetService {
 
   @Override
   public Bouquet updateBouquet(UpdateBouquetRequest bouquetRequest, List<MultipartFile> images) {
-    
+
     Optional<Bouquet> optionalBouquet = repository.findById(bouquetRequest.getId());
     if (!optionalBouquet.isPresent()) {
       throw new BadHttpRequestException("Bouquet not found");
@@ -303,5 +308,17 @@ public class BouquetService implements IBouquetService {
     }
 
     return new BouquetCostResponse(id, totalCost, breakdown);
+  }
+
+  @Override
+  public List<Bouquet> getMostRatedBouquetsToday() {
+    LocalDateTime start = LocalDate.now().atStartOfDay();
+    LocalDateTime end = LocalDate.now().atTime(LocalTime.MAX);
+    return repository.findMostRatedBouquetsInTimeRange(start, end, PageRequest.of(0, 1));
+  }
+
+  @Override
+  public List<Bouquet> getTop4RatedBouquets() {
+    return repository.findTopRatedBouquets(PageRequest.of(0, 4));
   }
 }

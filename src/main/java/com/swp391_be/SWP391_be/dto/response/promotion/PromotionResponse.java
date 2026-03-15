@@ -20,6 +20,8 @@ public class PromotionResponse {
     private float minOrderValue;
     private float maxDiscountValue;
     private LocalDateTime createdAt;
+    private boolean isActive;
+
 
     public PromotionResponse(Promotion promotion) {
         this.id = promotion.getId();
@@ -32,5 +34,6 @@ public class PromotionResponse {
         this.minOrderValue = promotion.getMinOrderValue();
         this.maxDiscountValue = promotion.getMaxDiscountValue();
         this.createdAt = promotion.getCreatedAt();
+        this.isActive = promotion.isActive();
     }
 }

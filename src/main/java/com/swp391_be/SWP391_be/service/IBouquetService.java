@@ -21,4 +21,6 @@ public interface IBouquetService {
   void deleteBouquet(int id);
   PageResponse<BouquetListResponse> getBouquets(Pageable pageable, GetBouquetCriteriaRequest getBouquetRequest);
   BouquetCostResponse getBouquetCost(int id);
+  List<Bouquet> getMostRatedBouquetsToday();
+  List<Bouquet> getTop4RatedBouquets();
 }

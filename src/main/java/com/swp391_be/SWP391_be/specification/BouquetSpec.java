@@ -23,6 +23,11 @@ public class BouquetSpec {
                     cb.equal(root.get("category").get("id"), criteria.getCategoryId())
                 );
             }
+            if (criteria.getMaterialId() != null) {
+                predicates.add(
+                    cb.equal(root.get("bouquetsMaterials").get("rawMaterial").get("id"), criteria.getMaterialId())
+                );
+            }
 
             if (criteria.getName() != null) {
                 predicates.add(
