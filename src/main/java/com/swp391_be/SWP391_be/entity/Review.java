@@ -23,4 +23,9 @@ public class Review extends BaseEntity {
     @JoinColumn(name = "boutquet_id", nullable = false)
     @JsonIgnore
     private Bouquet bouquet;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    @JsonIgnore
+    private User user;
 }

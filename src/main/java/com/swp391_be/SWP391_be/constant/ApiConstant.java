@@ -22,4 +22,8 @@ public class ApiConstant {
         public static final String ORDER = "/order";
         public static final String ID = ORDER + "/{id}";
     }
+
+    public static class REVIEW {
+        public static final String REVIEW = "/review";
+    }
 }
