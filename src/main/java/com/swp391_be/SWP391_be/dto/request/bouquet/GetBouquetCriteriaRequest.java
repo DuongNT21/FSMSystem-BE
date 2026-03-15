@@ -11,4 +11,7 @@ public class GetBouquetCriteriaRequest {
   private Float minPrice;
   private Float maxPrice;
   private Integer categoryId;
+  private Integer materialId;
+  private String sortBy;
+  private String sortOrder;
 }
