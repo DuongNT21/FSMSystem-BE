@@ -14,6 +14,7 @@ import com.swp391_be.SWP391_be.exception.BadHttpRequestException;
 import com.swp391_be.SWP391_be.exception.NotFoundException;
 import com.swp391_be.SWP391_be.repository.BouquetRepository;
 import com.swp391_be.SWP391_be.repository.OrderRepository;
+import com.swp391_be.SWP391_be.repository.PromotionRepository;
 import com.swp391_be.SWP391_be.repository.UserRepository;
 import com.swp391_be.SWP391_be.service.IOrderService;
 import com.swp391_be.SWP391_be.specification.OrderSpecification;
@@ -26,9 +27,11 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -37,6 +40,7 @@ public class OrderService implements IOrderService {
     private final UserRepository userRepository;
     private final OrderRepository orderRepository;
     private final BouquetRepository bouquetRepository;
+    private final PromotionRepository promotionRepository;
 
     @Override
     public CreateOrderResponse createOrder(CreateOrderRequest request) {
@@ -44,13 +48,17 @@ public class OrderService implements IOrderService {
         User user = new User();
         Order order = new Order();
         float totalPrice = 0;
+        Optional<Promotion> promotion = promotionRepository.findActivePromotion(LocalDate.now());
+
         List<OrderItem> orderItems = new ArrayList<>();
         if (userId != 0) {
             user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found"));
         }
         order.setFullName(request.getFullName() == null ? user.getUserProfile().getName() : request.getFullName());
-        order.setPhoneNumber(request.getPhoneNumber() == null ? user.getUserProfile().getPhone() : request.getPhoneNumber());
-        order.setDeliveryAddress(request.getDeliveryAddress() == null ? user.getUserProfile().getAddress() : request.getDeliveryAddress());
+        order.setPhoneNumber(
+                request.getPhoneNumber() == null ? user.getUserProfile().getPhone() : request.getPhoneNumber());
+        order.setDeliveryAddress(request.getDeliveryAddress() == null ? user.getUserProfile().getAddress()
+                : request.getDeliveryAddress());
         order.setTotalPrice(totalPrice);
         order.setOrderStatus(EOrderStatus.Pending);
         order.setCreatedAt(LocalDateTime.now());
@@ -59,7 +67,8 @@ public class OrderService implements IOrderService {
         }
 
         for (CreateOrderItemsRequest orderItemReq : request.getOrderItems()) {
-            Bouquet bouquet = bouquetRepository.findById(orderItemReq.getBouquetId()).orElseThrow(() -> new NotFoundException("Bouquet not found"));
+            Bouquet bouquet = bouquetRepository.findById(orderItemReq.getBouquetId())
+                    .orElseThrow(() -> new NotFoundException("Bouquet not found"));
             for (BouquetsMaterial bm : bouquet.getBouquetsMaterials()) {
                 RawMaterial rawMaterial = bm.getRawMaterial();
 
@@ -75,10 +84,19 @@ public class OrderService implements IOrderService {
             orderItem.setPrice(bouquet.getPrice() * orderItemReq.getQuantity());
             orderItem.setCreatedAt(LocalDateTime.now());
             orderItem.setOrder(order);
-            totalPrice += orderItem.getPrice() * orderItemReq.getQuantity();
+            totalPrice += bouquet.getPrice() * orderItemReq.getQuantity();
             orderItems.add(orderItem);
         }
-        order.setTotalPrice(totalPrice);
+        Promotion promo = promotion.isPresent() ? promotion.get() : null;
+        float subtotal = totalPrice; 
+        float vatAmount = subtotal * 0.10f; 
+        float finalPrice = subtotal;
+        if (promo != null) {
+            float discountPercent = promo.getDiscountValue() / 100f; 
+            // Apply discount ONLY to the subtotal
+            finalPrice = subtotal - (subtotal * discountPercent);
+        }
+        order.setTotalPrice(finalPrice + vatAmount);
         order.setOrderItems(orderItems);
         orderRepository.save(order);
         CreateOrderResponse response = new CreateOrderResponse();
@@ -113,11 +131,9 @@ public class OrderService implements IOrderService {
         Specification<Order> spec = OrderSpecification.byCriteria(criteria);
 
         if (user.getRole().getRoleName().equals("User")) {
-            spec = spec.and((root, query, cb) ->
-                    cb.equal(root.get("user").get("id"), userId));
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("user").get("id"), userId));
         } else {
-            spec = spec.and((root, query, cb) ->
-                    cb.notEqual(root.get("orderStatus"), EOrderStatus.Pending));
+            spec = spec.and((root, query, cb) -> cb.notEqual(root.get("orderStatus"), EOrderStatus.Pending));
         }
 
         Page<Order> orderPage = orderRepository.findAll(spec, pageable);
