@@ -13,4 +13,6 @@ public class GetOrderCriteriaRequest {
 
     private LocalDate toDate;
 
+    private String status;
+
 }

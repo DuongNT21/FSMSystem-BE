@@ -114,7 +114,7 @@ public class OrderService implements IOrderService {
             int page,
             int size,
             String sort) {
-
+        
         int userId = AuthenUtil.getCurrentUserId();
         User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found"));
 
@@ -133,11 +133,13 @@ public class OrderService implements IOrderService {
         if (user.getRole().getRoleName().equals("User")) {
             spec = spec.and((root, query, cb) -> cb.equal(root.get("user").get("id"), userId));
         } else {
-            spec = spec.and((root, query, cb) -> cb.notEqual(root.get("orderStatus"), EOrderStatus.Pending));
+            if (criteria.getStatus() != null) {
+                spec = spec.and((root, query, cb) -> cb.equal(root.get("orderStatus"), criteria.getStatus()));
+            }
         }
 
         Page<Order> orderPage = orderRepository.findAll(spec, pageable);
-
+        System.out.println("debug");
         return PageResponse.fromPage(orderPage, order -> {
             GetAllOrderResponse res = new GetAllOrderResponse();
             res.setId(order.getId());
