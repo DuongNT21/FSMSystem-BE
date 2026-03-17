@@ -1,5 +1,6 @@
 package com.swp391_be.SWP391_be.service.impl;
 
+import com.swp391_be.SWP391_be.configuration.PaymentConfig;
 import com.swp391_be.SWP391_be.dto.request.order.CreateOrderRequest;
 import com.swp391_be.SWP391_be.dto.request.order.GetOrderCriteriaRequest;
 import com.swp391_be.SWP391_be.dto.request.orderItems.CreateOrderItemsRequest;
@@ -19,7 +20,9 @@ import com.swp391_be.SWP391_be.repository.UserRepository;
 import com.swp391_be.SWP391_be.service.IOrderService;
 import com.swp391_be.SWP391_be.specification.OrderSpecification;
 import com.swp391_be.SWP391_be.util.AuthenUtil;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -27,11 +30,13 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -41,6 +46,7 @@ public class OrderService implements IOrderService {
     private final OrderRepository orderRepository;
     private final BouquetRepository bouquetRepository;
     private final PromotionRepository promotionRepository;
+    private PaymentConfig paymentConfig;
 
     @Override
     public CreateOrderResponse createOrder(CreateOrderRequest request) {
@@ -174,6 +180,70 @@ public class OrderService implements IOrderService {
                     return item;
                 }).toList());
         return response;
+    }
+
+    @Override
+    public String payWithVNPAYOnline(int orderId, HttpServletRequest request) throws UnsupportedEncodingException {
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> new NotFoundException("Order not found"));
+        Calendar cld = Calendar.getInstance(TimeZone.getTimeZone("Etc/GMT+7"));
+        long totalPrice = (long)order.getTotalPrice(); // VD: 100000
+
+        long deposit = totalPrice / 2;
+        long vnp_Amount = deposit * 100;
+
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
+        String vnp_CreateDate = formatter.format(cld.getTime());
+        cld.add(Calendar.MINUTE, 10);
+
+        String vnp_ExpireDate = formatter.format(cld.getTime());
+
+        Map<String, String> vnp_Params = new HashMap<>();
+        vnp_Params.put("vnp_Version", PaymentConfig.vnp_Version);
+        vnp_Params.put("vnp_Command", PaymentConfig.vnp_Command);
+        vnp_Params.put("vnp_TmnCode", PaymentConfig.vnp_TmnCode);
+        vnp_Params.put("vnp_Amount", String.valueOf(String.valueOf(vnp_Amount) + "00"));
+        vnp_Params.put("vnp_BankCode", PaymentConfig.vnp_BankCode);
+        vnp_Params.put("vnp_CreateDate", vnp_CreateDate);
+        vnp_Params.put("vnp_CurrCode", PaymentConfig.vnp_CurrCode);
+        vnp_Params.put("vnp_IpAddr", PaymentConfig.getIpAddress(request));
+        vnp_Params.put("vnp_Locale", PaymentConfig.vnp_Locale);
+        vnp_Params.put("vnp_OrderInfo", String.valueOf(orderId));
+        vnp_Params.put("vnp_OrderType", "other");
+        vnp_Params.put("vnp_ReturnUrl", PaymentConfig.vnp_ReturnUrl);
+        vnp_Params.put("vnp_TxnRef", "HD" + RandomStringUtils.randomNumeric(6) + "-" + vnp_CreateDate);
+        vnp_Params.put("vnp_ExpireDate", vnp_ExpireDate);
+
+        List fieldList = new ArrayList(vnp_Params.keySet());
+        Collections.sort(fieldList);
+
+        StringBuilder hashData = new StringBuilder();
+        StringBuilder query = new StringBuilder();
+
+        Iterator itr = fieldList.iterator();
+        while (itr.hasNext()) {
+            String fieldName = (String) itr.next();
+            String fieldValue = vnp_Params.get(fieldName);
+            if (fieldValue != null && (fieldValue.length() > 0)) {
+                hashData.append(fieldName);
+                hashData.append("=");
+                hashData.append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII.toString()));
+
+                query.append(URLEncoder.encode(fieldName, StandardCharsets.US_ASCII.toString()));
+                query.append("=");
+                query.append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII.toString()));
+
+                if (itr.hasNext()) {
+                    query.append("&");
+                    hashData.append("&");
+                }
+            }
+        }
+        String queryUrl = query.toString();
+        String vnp_SecureHash = PaymentConfig.hmacSHA512(PaymentConfig.secretKey, hashData.toString());
+        queryUrl += "&vnp_SecureHash=" + vnp_SecureHash;
+        String paymentUrl = PaymentConfig.vnp_PayUrl + "?" + queryUrl;
+
+        return paymentUrl;
     }
 
 }

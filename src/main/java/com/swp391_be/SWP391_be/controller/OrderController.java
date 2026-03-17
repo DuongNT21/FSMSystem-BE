@@ -1,6 +1,7 @@
 package com.swp391_be.SWP391_be.controller;
 
 import com.swp391_be.SWP391_be.constant.ApiConstant;
+import com.swp391_be.SWP391_be.dto.request.employee.CreateEmployeeRequest;
 import com.swp391_be.SWP391_be.dto.request.order.CreateOrderRequest;
 import com.swp391_be.SWP391_be.dto.request.order.GetOrderCriteriaRequest;
 import com.swp391_be.SWP391_be.dto.response.BaseResponse;
@@ -11,10 +12,13 @@ import com.swp391_be.SWP391_be.dto.response.order.GetOrderByIdResponse;
 import com.swp391_be.SWP391_be.dto.response.pageResponse.PageResponse;
 import com.swp391_be.SWP391_be.dto.response.rawMaterial.GetRawMaterialResponse;
 import com.swp391_be.SWP391_be.service.IOrderService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.io.UnsupportedEncodingException;
 
 @RestController
 @RequestMapping(ApiConstant.API)
@@ -57,5 +61,15 @@ public class OrderController {
         baseResponse.setMessage("Get Raw Material Successful");
         baseResponse.setData(getOrderByIdResponse);
         return ResponseEntity.status(HttpStatus.OK).body(baseResponse);
+    }
+
+    @PostMapping(ApiConstant.ORDER.PAY)
+    public ResponseEntity<BaseResponse<String>> payment(@PathVariable int id, HttpServletRequest request) throws UnsupportedEncodingException {
+        String url = orderService.payWithVNPAYOnline(id, request);
+        BaseResponse<String> response = new BaseResponse<>();
+        response.setStatus(HttpStatus.OK.value());
+        response.setMessage("Payment successfully");
+        response.setData(url);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 }

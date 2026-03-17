@@ -6,6 +6,9 @@ import com.swp391_be.SWP391_be.dto.response.order.CreateOrderResponse;
 import com.swp391_be.SWP391_be.dto.response.order.GetAllOrderResponse;
 import com.swp391_be.SWP391_be.dto.response.order.GetOrderByIdResponse;
 import com.swp391_be.SWP391_be.dto.response.pageResponse.PageResponse;
+import jakarta.servlet.http.HttpServletRequest;
+
+import java.io.UnsupportedEncodingException;
 
 public interface IOrderService {
     CreateOrderResponse createOrder(CreateOrderRequest request);
@@ -16,4 +19,6 @@ public interface IOrderService {
             String sort
     );
     GetOrderByIdResponse getOrderById(int orderId);
+
+    public  String payWithVNPAYOnline(int orderId, HttpServletRequest request) throws UnsupportedEncodingException;
 }

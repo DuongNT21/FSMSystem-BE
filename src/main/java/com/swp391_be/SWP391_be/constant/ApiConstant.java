@@ -21,6 +21,7 @@ public class ApiConstant {
     public static class ORDER {
         public static final String ORDER = "/order";
         public static final String ID = ORDER + "/{id}";
+        public static final String PAY = ID + "/payment";
     }
 
     public static class REVIEW {
