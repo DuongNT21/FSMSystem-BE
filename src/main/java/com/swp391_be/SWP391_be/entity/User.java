@@ -40,6 +40,9 @@ public class User extends BaseEntity implements UserDetails {
     @OneToOne(mappedBy = "user")
     private Employee employee;
 
+    @Column(columnDefinition = "boolean default true")
+    private Boolean isActive = true;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority(role.getRoleName()));
@@ -62,6 +65,6 @@ public class User extends BaseEntity implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return isActive == null || isActive;
     }
 }
