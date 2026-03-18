@@ -3,6 +3,7 @@ package com.swp391_be.SWP391_be.service.impl;
 import com.swp391_be.SWP391_be.dto.request.auth.AuthRequest;
 import com.swp391_be.SWP391_be.dto.response.auth.AuthResponse;
 import com.swp391_be.SWP391_be.entity.User;
+import com.swp391_be.SWP391_be.exception.BadHttpRequestException;
 import com.swp391_be.SWP391_be.service.IAuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -20,6 +21,10 @@ public class AuthService implements IAuthService {
     public AuthResponse login(AuthRequest authRequest) {
         Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword()));
         User user = (User) authentication.getPrincipal();
+        // check if user is blocked
+        if (!user.getIsActive()) {
+            throw new BadHttpRequestException("User is blocked");
+        }
         var token = jwtService.generateToken(user);
         AuthResponse authResponse = new AuthResponse();
         authResponse.setToken(token);
