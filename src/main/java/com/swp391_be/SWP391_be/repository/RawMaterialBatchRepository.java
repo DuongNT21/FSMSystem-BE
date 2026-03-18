@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface RawMaterialBatchRepository extends JpaRepository<RawMaterialBatches, Integer> {
@@ -17,4 +18,9 @@ public interface RawMaterialBatchRepository extends JpaRepository<RawMaterialBat
     Optional<RawMaterialBatches> findLatestBatchByRawMaterialIdAndStatus(
             @Param("rawMaterialId") int rawMaterialId,
             @Param("status") EBatchStatus status);
+
+    List<RawMaterialBatches> findAllByRawMaterialIdInAndStatus(List<Integer> rawMaterialIds, EBatchStatus status);
+
+    List<RawMaterialBatches> findAllByRawMaterialIdAndStatus(Integer rawMaterialId, EBatchStatus status);
+
 }

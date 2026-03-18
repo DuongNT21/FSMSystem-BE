@@ -104,13 +104,13 @@ public class BouquetController {
     bouquetService.deleteBouquet(id);
   }
 
-  @Operation(summary = "Get cost breakdown of a bouquet based on latest active batch prices")
+  @Operation(summary = "Get unit cost of a raw material based on latest active batch")
   @GetMapping("/cost")
-  public ResponseEntity<BaseResponse<BouquetCostResponse>> getCost(@RequestParam int id) {
-    BouquetCostResponse cost = bouquetService.getBouquetCost(id);
-    BaseResponse<BouquetCostResponse> response = new BaseResponse<>();
+  public ResponseEntity<BaseResponse<Float>> getMaterialCost(@RequestParam int materialId) {
+    float cost = bouquetService.getMaterialCost(materialId);
+    BaseResponse<Float> response = new BaseResponse<>();
     response.setStatus(HttpStatus.OK.value());
-    response.setMessage("Bouquet cost");
+    response.setMessage("Unit material cost");
     response.setData(cost);
     return ResponseEntity.ok(response);
   }
