@@ -133,12 +133,12 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public void blockUser(int id) {
+    public void updateUserStatus(int id, boolean isActive) {
         User user = userRepository.findById(id).orElseThrow(() -> new NotFoundException("User not found"));
         if (user.getRole().getRoleName().equalsIgnoreCase("Admin")) {
-            throw new BadHttpRequestException("Cannot block admin user");
+            throw new BadHttpRequestException("Cannot update status of admin user");
         }
-        user.setIsActive(false);
+        user.setIsActive(isActive);
         userRepository.save(user);
     }
 }

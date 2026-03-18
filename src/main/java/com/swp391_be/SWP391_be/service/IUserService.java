@@ -9,5 +9,5 @@ import com.swp391_be.SWP391_be.dto.response.user.GetUserResponse;
 public interface IUserService {
     RegisterResponse register(RegisterRequest registerRequest);
     PageResponse<GetUserResponse> getUsers(GetUserCriteriaRequest criteria, int page, int size, String sort);
-    void blockUser(int id);
+    void updateUserStatus(int id, boolean isActive);
 }

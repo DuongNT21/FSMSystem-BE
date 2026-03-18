@@ -45,12 +45,12 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
-    @PutMapping( "users/{id}/block")
+    @PutMapping( "users/{id}/status")
     @PreAuthorize("hasAuthority('Admin')")
-    public ResponseEntity<BaseResponse<Void>> blockUser(@PathVariable int id) {
-        iUserService.blockUser(id);
+    public ResponseEntity<BaseResponse<Void>> updateUserStatus(@PathVariable int id, @RequestParam boolean isActive) {
+        iUserService.updateUserStatus(id, isActive);
         BaseResponse<Void> response = new BaseResponse<>();
-        response.setMessage("Block user successfully");
+        response.setMessage("Update user status successfully");
         response.setStatus(HttpStatus.OK.value());
         return ResponseEntity.ok(response);
     }
