@@ -188,8 +188,8 @@ public class OrderService implements IOrderService {
         Calendar cld = Calendar.getInstance(TimeZone.getTimeZone("Etc/GMT+7"));
         long totalPrice = (long)order.getTotalPrice(); // VD: 100000
 
-        long deposit = totalPrice / 2;
-        long vnp_Amount = deposit * 100;
+        long deposit = totalPrice;
+        long vnp_Amount = deposit;
 
         SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
         String vnp_CreateDate = formatter.format(cld.getTime());
