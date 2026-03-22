@@ -312,4 +312,27 @@ public class BouquetService implements IBouquetService {
   public List<Bouquet> getTop4RatedBouquets() {
     return repository.findTopRatedBouquets(PageRequest.of(0, 4));
   }
+
+  @Override
+  public void checkInventory() {
+    List<Bouquet> bouquets = repository.findAll();
+    for (Bouquet bouquet : bouquets) {
+      boolean isOutOfStock = false;
+      for (BouquetsMaterial bm : bouquet.getBouquetsMaterials()) {
+        RawMaterial rawMaterial = bm.getRawMaterial();
+        int requiredQuantity = bm.getQuantity();
+        if (rawMaterial.getTotalQuantity() < requiredQuantity) {
+          isOutOfStock = true;
+          break;
+        }
+      }
+      bouquet.setStatus(isOutOfStock ? 0 : 1);
+      try {
+        repository.save(bouquet);
+      } catch (Exception e) {
+        System.out.println("Failed to update bouquet status with message:" + e.getMessage());
+        e.printStackTrace();
+      }
+    }
+  }
 }

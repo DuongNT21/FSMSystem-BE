@@ -23,4 +23,5 @@ public interface IBouquetService {
   float getMaterialCost(int materialId);
   List<Bouquet> getMostRatedBouquetsToday();
   List<Bouquet> getTop4RatedBouquets();
+  void checkInventory();
 }

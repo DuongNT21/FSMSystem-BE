@@ -4,6 +4,7 @@ import com.swp391_be.SWP391_be.constant.ApiConstant;
 import com.swp391_be.SWP391_be.dto.request.employee.CreateEmployeeRequest;
 import com.swp391_be.SWP391_be.dto.request.order.CreateOrderRequest;
 import com.swp391_be.SWP391_be.dto.request.order.GetOrderCriteriaRequest;
+import com.swp391_be.SWP391_be.dto.request.order.UpdateOrderStatusRequest;
 import com.swp391_be.SWP391_be.dto.response.BaseResponse;
 import com.swp391_be.SWP391_be.dto.response.employee.CreateEmployeeResponse;
 import com.swp391_be.SWP391_be.dto.response.order.CreateOrderResponse;
@@ -61,6 +62,15 @@ public class OrderController {
         baseResponse.setMessage("Get Raw Material Successful");
         baseResponse.setData(getOrderByIdResponse);
         return ResponseEntity.status(HttpStatus.OK).body(baseResponse);
+    }
+
+    @PatchMapping(ApiConstant.ORDER.STATUS)
+    public ResponseEntity<BaseResponse<Void>> updateOrderStatus(@PathVariable int id, @RequestBody UpdateOrderStatusRequest request) {
+        orderService.updateOrderStatus(id, request);
+        BaseResponse<Void> response = new BaseResponse<>();
+        response.setStatus(HttpStatus.OK.value());
+        response.setMessage("Order status updated successfully");
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping(ApiConstant.ORDER.PAY)

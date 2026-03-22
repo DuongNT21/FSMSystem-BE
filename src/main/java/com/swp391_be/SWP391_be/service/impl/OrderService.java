@@ -3,6 +3,7 @@ package com.swp391_be.SWP391_be.service.impl;
 import com.swp391_be.SWP391_be.configuration.PaymentConfig;
 import com.swp391_be.SWP391_be.dto.request.order.CreateOrderRequest;
 import com.swp391_be.SWP391_be.dto.request.order.GetOrderCriteriaRequest;
+import com.swp391_be.SWP391_be.dto.request.order.UpdateOrderStatusRequest;
 import com.swp391_be.SWP391_be.dto.request.orderItems.CreateOrderItemsRequest;
 import com.swp391_be.SWP391_be.dto.response.order.CreateOrderResponse;
 import com.swp391_be.SWP391_be.dto.response.order.GetAllOrderResponse;
@@ -244,6 +245,17 @@ public class OrderService implements IOrderService {
         String paymentUrl = PaymentConfig.vnp_PayUrl + "?" + queryUrl;
 
         return paymentUrl;
+    }
+
+    @Override
+    public void updateOrderStatus(int orderId, UpdateOrderStatusRequest request) {
+        if (request.getStatus() == null) {
+            throw new BadHttpRequestException("Order status is required");
+        }
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new NotFoundException("Order not found"));
+        order.setOrderStatus(request.getStatus());
+        orderRepository.save(order);
     }
 
 }

@@ -162,4 +162,13 @@ public class BouquetController {
     response.setStatus(HttpStatus.OK.value());
     return ResponseEntity.ok(response);
   }
+
+  @PostMapping("/check-inventory")
+  public ResponseEntity<BaseResponse<Void>> checkInventory() {
+    bouquetService.checkInventory();
+    BaseResponse<Void> response = new BaseResponse<>();
+    response.setStatus(HttpStatus.OK.value());
+    response.setMessage("Inventory check completed");
+    return ResponseEntity.ok(response);
+  }
 }
