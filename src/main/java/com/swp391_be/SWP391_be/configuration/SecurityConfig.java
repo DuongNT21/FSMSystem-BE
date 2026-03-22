@@ -54,7 +54,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/api/bouquets/**").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/promotions/active").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/promotions/**").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/api/order").permitAll()      
+                        .requestMatchers(HttpMethod.POST, "/api/order").permitAll()
+                        .requestMatchers("/api/payment/payment-callback").permitAll()
                         .requestMatchers("/api/users", "/api/auth", "/swagger-ui/**", "/v3/api-docs/**",
                                 "/api/material/**", "/api/register")
                         .permitAll()

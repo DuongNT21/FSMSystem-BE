@@ -25,6 +25,10 @@ public class ApiConstant {
         public static final String STATUS = ID + "/status";
     }
 
+    public static class PAYMENT {
+        public static final String PAYMENT = "/payment";
+        public static final String CALLBACK = PAYMENT + "/payment-callback";
+    }
     public static class REVIEW {
         public static final String REVIEW = "/review";
     }
