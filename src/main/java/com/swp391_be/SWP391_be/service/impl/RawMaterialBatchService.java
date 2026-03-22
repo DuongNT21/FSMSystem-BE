@@ -67,8 +67,12 @@ public class RawMaterialBatchService implements IRawMaterialBatchService {
 
         boolean isUpdated = false;
 
-        // Validate expire date
+        // ===== VALIDATE & UPDATE EXPIRE DATE =====
         if (request.getExpireDate() != null) {
+
+            if (batch.getImportDate() == null) {
+                throw new RuntimeException("Import date is missing");
+            }
 
             if (request.getExpireDate().before(batch.getImportDate())) {
                 throw new RuntimeException("Expire date cannot be before import date");
@@ -78,7 +82,7 @@ public class RawMaterialBatchService implements IRawMaterialBatchService {
             isUpdated = true;
         }
 
-        // Validate import price
+        // ===== VALIDATE & UPDATE PRICE =====
         if (request.getImportPrice() != null) {
 
             if (request.getImportPrice() < 0) {
@@ -89,6 +93,7 @@ public class RawMaterialBatchService implements IRawMaterialBatchService {
             isUpdated = true;
         }
 
+        // ===== NO FIELD UPDATED =====
         if (!isUpdated) {
             throw new RuntimeException("No valid fields provided for update");
         }
