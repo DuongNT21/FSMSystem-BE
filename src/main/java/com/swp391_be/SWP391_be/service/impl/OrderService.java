@@ -140,9 +140,7 @@ public class OrderService implements IOrderService {
         if (user.getRole().getRoleName().equals("User")) {
             spec = spec.and((root, query, cb) -> cb.equal(root.get("user").get("id"), userId));
         } else {
-            if (criteria.getStatus() != null) {
-                spec = spec.and((root, query, cb) -> cb.equal(root.get("orderStatus"), criteria.getStatus()));
-            }
+            spec = spec.and((root, query, cb) -> cb.notEqual(root.get("orderStatus"), EOrderStatus.Pending));
         }
 
         Page<Order> orderPage = orderRepository.findAll(spec, pageable);

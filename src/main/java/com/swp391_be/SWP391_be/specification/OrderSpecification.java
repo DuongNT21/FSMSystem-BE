@@ -25,6 +25,11 @@ public class OrderSpecification {
                 predicates.add(cb.lessThanOrEqualTo(root.get("createdAt"), criteria.getToDate().atTime(LocalTime.MAX)));
             }
 
+            if (criteria.getStatus() != null) {
+                predicates.add(cb.equal(root.get("orderStatus"), criteria.getStatus()));
+            }
+
+
             return cb.and(predicates.toArray(new Predicate[0]));
         };
     }
