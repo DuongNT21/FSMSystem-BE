@@ -43,7 +43,7 @@ public class RawMaterialBatchService implements IRawMaterialBatchService {
         batch.setImportPrice(request.getImportPrice());
         batch.setOriginalQuantity(request.getOriginalQuantity());
         batch.setRemainQuantity(request.getOriginalQuantity());
-        // batch.setStatus(EBatchStatus.ACTIVE);
+        batch.setStatus(EBatchStatus.ACTIVE);
         rawMaterialBatchRepository.save(batch);
 
         InventoryLogs log = new InventoryLogs();

@@ -2,6 +2,7 @@ package com.swp391_be.SWP391_be.service;
 
 import com.swp391_be.SWP391_be.dto.request.order.CreateOrderRequest;
 import com.swp391_be.SWP391_be.dto.request.order.GetOrderCriteriaRequest;
+import com.swp391_be.SWP391_be.dto.request.order.UpdateOrderStatusRequest;
 import com.swp391_be.SWP391_be.dto.response.order.CreateOrderResponse;
 import com.swp391_be.SWP391_be.dto.response.order.GetAllOrderResponse;
 import com.swp391_be.SWP391_be.dto.response.order.GetOrderByIdResponse;
@@ -20,5 +21,6 @@ public interface IOrderService {
     );
     GetOrderByIdResponse getOrderById(int orderId);
 
-    public  String payWithVNPAYOnline(int orderId, HttpServletRequest request) throws UnsupportedEncodingException;
+    String payWithVNPAYOnline(int orderId, HttpServletRequest request) throws UnsupportedEncodingException;
+    void updateOrderStatus(int orderId, UpdateOrderStatusRequest request);
 }

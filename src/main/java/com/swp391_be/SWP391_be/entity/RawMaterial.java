@@ -18,11 +18,7 @@ import java.util.List;
 public class RawMaterial extends BaseEntity {
     private String name;
   
-    @Formula("""
-        (SELECT COALESCE(SUM(rmb.remain_quantity),0)
-         FROM raw_material_batches rmb
-         WHERE rmb.raw_material_id = id)
-    """)
+    @Formula("(SELECT COALESCE(SUM(rmb.remain_quantity), 0) FROM raw_material_batches rmb WHERE rmb.raw_material_id = id)")
     private int totalQuantity;
 
     @OneToMany(mappedBy = "rawMaterial")

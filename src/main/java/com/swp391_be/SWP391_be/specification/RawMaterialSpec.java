@@ -41,7 +41,6 @@ public class RawMaterialSpec {
                 predicates.add(cb.like(cb.lower(root.get("name")), "%" + criteria.getName().toLowerCase() + "%"));
             }
 
-
             return cb.and(predicates.toArray(new Predicate[0]));
         };
     }

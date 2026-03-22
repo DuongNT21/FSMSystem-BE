@@ -20,7 +20,8 @@ public interface IBouquetService {
   Bouquet updateBouquet(UpdateBouquetRequest bouquet, List<MultipartFile> images);
   void deleteBouquet(int id);
   PageResponse<BouquetListResponse> getBouquets(Pageable pageable, GetBouquetCriteriaRequest getBouquetRequest);
-  BouquetCostResponse getBouquetCost(int id);
+  float getMaterialCost(int materialId);
   List<Bouquet> getMostRatedBouquetsToday();
   List<Bouquet> getTop4RatedBouquets();
+  void checkInventory();
 }

@@ -26,7 +26,11 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
 import java.time.LocalDateTime;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -34,15 +38,6 @@ public class RawMaterialService implements IRawMaterialService {
     private final RawMaterialRepository rawMaterialRepository;
     private final RawMaterialBatchRepository rawMaterialBatchRepository;
     private final AuthenUtil authenUtil;
-
-    private float resolveUnitPrice(int rawMaterialId) {
-        return rawMaterialBatchRepository
-                .findLatestBatchByRawMaterialIdAndStatus(rawMaterialId, EBatchStatus.ACTIVE)
-                .map(batch -> batch.getOriginalQuantity() > 0
-                        ? batch.getImportPrice() / batch.getOriginalQuantity()
-                        : 0f)
-                .orElse(0f);
-    }
 
     @Override
     @Transactional
@@ -84,15 +79,42 @@ public class RawMaterialService implements IRawMaterialService {
                 size,
                 Sort.by(direction, sortArr[0]));
 
-
         Page<RawMaterial> materialPage = rawMaterialRepository.findAll(RawMaterialSpec.byCriteria(criteria), pageable);
+
+        // --- Start of fix for NonUniqueResultException and N+1 query problem ---
+        // 1. Get all material IDs from the current page
+        List<Integer> materialIds = materialPage.getContent().stream()
+                .map(RawMaterial::getId)
+                .collect(Collectors.toList());
+
+        Map<Integer, Float> unitPrices = new java.util.HashMap<>();
+
+        if (!materialIds.isEmpty()) {
+            // 2. Fetch all active batches for these materials in one query
+            List<RawMaterialBatches> activeBatches = rawMaterialBatchRepository.findAllByRawMaterialIdInAndStatus(materialIds, EBatchStatus.ACTIVE);
+
+            // 3. Group batches by material ID and find the latest to calculate unit price
+            Map<Integer, List<RawMaterialBatches>> batchesByMaterialId = activeBatches.stream()
+                    .collect(Collectors.groupingBy(batch -> batch.getRawMaterial().getId()));
+
+            batchesByMaterialId.forEach((materialId, batches) -> {
+                batches.stream()
+                        .max(Comparator.comparing(RawMaterialBatches::getImportDate))
+                        .ifPresent(latestBatch -> {
+                            float unitPrice = latestBatch.getOriginalQuantity() > 0
+                                    ? latestBatch.getImportPrice() / latestBatch.getOriginalQuantity()
+                                    : 0f;
+                            unitPrices.put(materialId, unitPrice);
+                        });
+            });
+        }
 
         return PageResponse.fromPage(materialPage, material -> {
             GetRawMaterialResponse res = new GetRawMaterialResponse();
             res.setId(material.getId());
             res.setName(material.getName());
             res.setQuantity(material.getTotalQuantity());
-            res.setUnitPrice(resolveUnitPrice(material.getId()));
+            res.setUnitPrice(unitPrices.getOrDefault(material.getId(), 0f));
             return res;
         });
     }
@@ -106,7 +128,16 @@ public class RawMaterialService implements IRawMaterialService {
         response.setId(rawMaterial.getId());
         response.setName(rawMaterial.getName());
         response.setQuantity(rawMaterial.getTotalQuantity());
-        response.setUnitPrice(resolveUnitPrice(rawMaterial.getId()));
+
+        float unitPrice = rawMaterialBatchRepository
+                .findAllByRawMaterialIdAndStatus(rawMaterial.getId(), EBatchStatus.ACTIVE)
+                .stream()
+                .max(Comparator.comparing(RawMaterialBatches::getImportDate))
+                .map(batch -> batch.getOriginalQuantity() > 0
+                        ? batch.getImportPrice() / batch.getOriginalQuantity()
+                        : 0f)
+                .orElse(0f);
+        response.setUnitPrice(unitPrice);
         return response;
     }
 

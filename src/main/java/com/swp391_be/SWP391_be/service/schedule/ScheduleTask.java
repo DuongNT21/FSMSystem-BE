@@ -1,12 +1,10 @@
 package com.swp391_be.SWP391_be.service.schedule;
 
-import com.swp391_be.SWP391_be.entity.Bouquet;
-import com.swp391_be.SWP391_be.entity.BouquetsMaterial;
+import com.swp391_be.SWP391_be.entity.Order;
 import com.swp391_be.SWP391_be.entity.Promotion;
-import com.swp391_be.SWP391_be.entity.RawMaterial;
-import com.swp391_be.SWP391_be.exception.AppExceptionHandler;
-import com.swp391_be.SWP391_be.exception.BadHttpRequestException;
-import com.swp391_be.SWP391_be.repository.BouquetRepository;
+import com.swp391_be.SWP391_be.enums.EOrderStatus;
+import com.swp391_be.SWP391_be.enums.ETransactionStatus;
+import com.swp391_be.SWP391_be.repository.OrderRepository;
 import com.swp391_be.SWP391_be.repository.PromotionRepository;
 
 import org.slf4j.Logger;
@@ -16,17 +14,18 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Component
 public class ScheduleTask {
   private final PromotionRepository promotionRepository;
+  private final OrderRepository orderRepository;
   private static final Logger logger = LoggerFactory.getLogger(ScheduleTask.class);
-  private final BouquetRepository bouquetRepository;
 
-  ScheduleTask(PromotionRepository promotionRepository, BouquetRepository bouquetRepository) {
+  ScheduleTask(PromotionRepository promotionRepository, OrderRepository orderRepository) {
     this.promotionRepository = promotionRepository;
-    this.bouquetRepository = bouquetRepository;
+    this.orderRepository = orderRepository;
   }
 
   @Scheduled(fixedRate = 5000)
@@ -46,44 +45,23 @@ public class ScheduleTask {
           System.out.println("Failed to update promotion status with message:" + e.getMessage());
           e.printStackTrace();
         }
-
       }
     }
   }
 
-  @Scheduled(fixedRate = 6000)
+  @Scheduled(fixedRate = 60000)
   @Transactional(rollbackFor = RuntimeException.class)
-  public void checkInventory() {
-    List<Bouquet> bouquets = bouquetRepository.findAll();
-    for (Bouquet bouquet : bouquets) {
-      boolean isOutOfStock = false;
-      for (BouquetsMaterial bm : bouquet.getBouquetsMaterials()) {
-        RawMaterial rawMaterial = bm.getRawMaterial();
-
-        int requiredQuantity = bm.getQuantity();
-
-        if (rawMaterial.getTotalQuantity() < requiredQuantity) {
-          isOutOfStock = true;
-          break;
-        }
-      }
-      if (isOutOfStock) {
-        // update bouquet status to out of stock
-        bouquet.setStatus(0);
-        try {
-          bouquetRepository.save(bouquet);
-        } catch (Exception e) {
-          System.out.println("Failed to update bouquet status with message:" + e.getMessage());
-          e.printStackTrace();
-        }
-      } else {
-        bouquet.setStatus(1);
-        try {
-          bouquetRepository.save(bouquet);
-        } catch (Exception e) {
-          System.out.println("Failed to update bouquet status with message:" + e.getMessage());
-          e.printStackTrace();
-        }
+  public void cancelStaleOrders() {
+    LocalDateTime cutoff = LocalDateTime.now().minusMinutes(30);
+    List<Order> staleOrders = orderRepository.findPendingOrders(
+        EOrderStatus.Pending, cutoff);
+    for (Order order : staleOrders) {
+      order.setOrderStatus(EOrderStatus.Cancelled);
+      try {
+        orderRepository.save(order);
+        logger.info("Auto-cancelled order id={} (payment confirmed but pending > 30 min)", order.getId());
+      } catch (Exception e) {
+        logger.error("Failed to cancel stale order id={}: {}", order.getId(), e.getMessage());
       }
     }
   }

@@ -10,6 +10,7 @@ import com.swp391_be.SWP391_be.exception.BadHttpRequestException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.Comparator;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -220,33 +221,41 @@ public class BouquetService implements IBouquetService {
     if (materials == null || materials.isEmpty()) {
       return;
     }
-    for (MaterialReq material : materials) {
-      if (material.getQuantity() <= 0) {
+    int totalRequestMaterialQuantities = 0;
+    int totalRawMaterialQuantities = 0;
+    String rawMaterialName = null;
+    for (MaterialReq materialRequest : materials) {
+      // Check if raw material exists
+      Optional<BouquetsMaterial> existing = bouquet.getBouquetsMaterials().stream()
+          .filter(bm -> bm.getRawMaterial().getId() == materialRequest.getId())
+          .findFirst();
+      RawMaterial rawMaterial = rawMaterialrepository.findById(materialRequest.getId())
+          .orElseThrow(() -> new BadHttpRequestException("Raw material not found"));
+      totalRequestMaterialQuantities = materialRequest.getQuantity();
+      totalRawMaterialQuantities = rawMaterial.getTotalQuantity();
+      if (rawMaterialName == null) {
+        rawMaterialName = rawMaterial.getName();
+      }
+      if (totalRequestMaterialQuantities <= 0) {
         throw new BadHttpRequestException("Material quantity must be greater than 0");
       }
-      RawMaterial rawMaterial = rawMaterialrepository.findById(material.getId())
-          .orElseThrow(() -> new BadHttpRequestException("Raw material not found"));
 
-      int availableQuantity = rawMaterialBatchRepository.sumRemainQuantityByRawMaterialId(rawMaterial.getId());
-      if (availableQuantity < material.getQuantity()) {
-        throw new BadHttpRequestException("Not enough raw material in stock: " + rawMaterial.getName()
-            + " (available: " + availableQuantity + ", required: " + material.getQuantity() + ")");
+      if (totalRawMaterialQuantities < totalRequestMaterialQuantities) {
+        throw new BadHttpRequestException("Not enough raw material in stock: " + rawMaterialName
+            + " (available: " + totalRawMaterialQuantities + ", required: " + totalRequestMaterialQuantities + ")");
       }
 
-      Optional<BouquetsMaterial> existing = bouquet.getBouquetsMaterials().stream()
-          .filter(bm -> bm.getRawMaterial().getId() == rawMaterial.getId())
-          .findFirst();
-
       if (existing.isPresent()) {
-        existing.get().setQuantity(material.getQuantity());
+        existing.get().setQuantity(materialRequest.getQuantity());
       } else {
         BouquetsMaterial bouquetMaterial = new BouquetsMaterial();
         bouquetMaterial.setRawMaterial(rawMaterial);
-        bouquetMaterial.setQuantity(material.getQuantity());
+        bouquetMaterial.setQuantity(materialRequest.getQuantity());
         bouquetMaterial.setBouquet(bouquet);
         bouquet.getBouquetsMaterials().add(bouquetMaterial);
       }
     }
+
   }
 
   private String validateBouquetRequestUpdate(UpdateBouquetRequest bouquetRequest, Bouquet bouquet) {
@@ -281,33 +290,15 @@ public class BouquetService implements IBouquetService {
   }
 
   @Override
-  public BouquetCostResponse getBouquetCost(int id) {
-    Bouquet bouquet = repository.findById(id)
-        .orElseThrow(() -> new BadHttpRequestException("Bouquet not found"));
-
-    List<BouquetCostResponse.MaterialCostItem> breakdown = new ArrayList<>();
-    float totalCost = 0f;
-
-    for (BouquetsMaterial bm : bouquet.getBouquetsMaterials()) {
-      float unitPrice = rawMaterialBatchRepository
-          .findLatestBatchByRawMaterialIdAndStatus(bm.getRawMaterial().getId(), EBatchStatus.ACTIVE)
-          .map(batch -> batch.getOriginalQuantity() > 0
-              ? batch.getImportPrice() / batch.getOriginalQuantity()
-              : 0f)
-          .orElse(0f);
-
-      float subtotal = unitPrice * bm.getQuantity();
-      totalCost += subtotal;
-
-      breakdown.add(new BouquetCostResponse.MaterialCostItem(
-          bm.getRawMaterial().getId(),
-          bm.getRawMaterial().getName(),
-          bm.getQuantity(),
-          unitPrice,
-          subtotal));
-    }
-
-    return new BouquetCostResponse(id, totalCost, breakdown);
+  public float getMaterialCost(int materialId) {
+    return rawMaterialBatchRepository
+        .findAllByRawMaterialIdAndStatus(materialId, EBatchStatus.ACTIVE)
+        .stream()
+        .max(Comparator.comparing(RawMaterialBatches::getImportDate))
+        .map(batch -> batch.getOriginalQuantity() > 0
+            ? batch.getImportPrice() / batch.getOriginalQuantity()
+            : 0f)
+        .orElse(0f);
   }
 
   @Override
@@ -320,5 +311,28 @@ public class BouquetService implements IBouquetService {
   @Override
   public List<Bouquet> getTop4RatedBouquets() {
     return repository.findTopRatedBouquets(PageRequest.of(0, 4));
+  }
+
+  @Override
+  public void checkInventory() {
+    List<Bouquet> bouquets = repository.findAll();
+    for (Bouquet bouquet : bouquets) {
+      boolean isOutOfStock = false;
+      for (BouquetsMaterial bm : bouquet.getBouquetsMaterials()) {
+        RawMaterial rawMaterial = bm.getRawMaterial();
+        int requiredQuantity = bm.getQuantity();
+        if (rawMaterial.getTotalQuantity() < requiredQuantity) {
+          isOutOfStock = true;
+          break;
+        }
+      }
+      bouquet.setStatus(isOutOfStock ? 0 : 1);
+      try {
+        repository.save(bouquet);
+      } catch (Exception e) {
+        System.out.println("Failed to update bouquet status with message:" + e.getMessage());
+        e.printStackTrace();
+      }
+    }
   }
 }
