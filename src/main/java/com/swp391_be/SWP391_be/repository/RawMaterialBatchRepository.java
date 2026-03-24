@@ -23,4 +23,5 @@ public interface RawMaterialBatchRepository extends JpaRepository<RawMaterialBat
 
     List<RawMaterialBatches> findAllByRawMaterialIdAndStatus(Integer rawMaterialId, EBatchStatus status);
 
+    List<RawMaterialBatches> findByRawMaterialIdOrderByImportDateAsc(Integer  rawMaterialId);
 }
