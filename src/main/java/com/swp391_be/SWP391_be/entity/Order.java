@@ -17,6 +17,7 @@ import java.util.List;
 @Setter
 @Table(name = "orders")
 public class Order extends BaseEntity{
+
     @Enumerated(EnumType.STRING)
     private EOrderStatus orderStatus;
     private String fullName;
