@@ -66,6 +66,7 @@ public class RawMaterialBatchController {
         return ResponseEntity.ok(response);
     }
 
+
     @GetMapping("/{id}/logs")
     public ResponseEntity<BaseResponse<List<InventoryLogResponse>>> getLogsByBatch(
             @PathVariable int id) {
