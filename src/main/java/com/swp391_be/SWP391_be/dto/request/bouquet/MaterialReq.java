@@ -9,11 +9,12 @@ import lombok.Setter;
 @NoArgsConstructor
 public class MaterialReq {
   private int id;
+  private Integer batchId;
   private int quantity;
 
-  public MaterialReq(int id, int quantity) {
+  public MaterialReq(int id, Integer batchId, int quantity) {
     this.id = id;
+    this.batchId = batchId;
     this.quantity = quantity;
   }
-
 }

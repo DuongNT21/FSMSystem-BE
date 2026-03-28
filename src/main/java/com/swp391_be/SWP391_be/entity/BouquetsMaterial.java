@@ -1,5 +1,6 @@
 package com.swp391_be.SWP391_be.entity;
 
+import jakarta.persistence.Column;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
@@ -16,6 +17,9 @@ import lombok.Setter;
 @Setter
 public class BouquetsMaterial extends BaseEntity{
     private int quantity;
+
+    @Column(name = "batch_data", columnDefinition = "TEXT")
+    private String batchData;
 
     @ManyToOne
     @JoinColumn(name = "bouquet_id", nullable = false)

@@ -7,6 +7,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.swp391_be.SWP391_be.exception.BadHttpRequestException;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -17,8 +21,10 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.data.domain.PageRequest;
@@ -60,6 +66,7 @@ public class BouquetService implements IBouquetService {
   private final IImageService imageService;
 
   @Override
+  @Transactional
   public Bouquet createBouquet(CreateBouquetRequest bouquetRequest, List<MultipartFile> images) {
     // Check if bouquet name is valid
     if (bouquetRequest.getName() == null || bouquetRequest.getName().isEmpty()) {
@@ -144,6 +151,7 @@ public class BouquetService implements IBouquetService {
   }
 
   @Override
+  @Transactional
   public Bouquet updateBouquet(UpdateBouquetRequest bouquetRequest, List<MultipartFile> images) {
 
     Optional<Bouquet> optionalBouquet = repository.findById(bouquetRequest.getId());
@@ -218,44 +226,88 @@ public class BouquetService implements IBouquetService {
   }
 
   private void processMaterials(Bouquet bouquet, List<MaterialReq> materials) {
+    ObjectMapper objectMapper = new ObjectMapper();
+
+    // 1. Return old stock if updating (inventory logic)
+    if (bouquet.getBouquetsMaterials() != null && !bouquet.getBouquetsMaterials().isEmpty()) {
+      for (BouquetsMaterial bm : bouquet.getBouquetsMaterials()) {
+        if (bm.getBatchData() != null) {
+          try {
+            List<Map<String, Object>> oldBatchData = objectMapper.readValue(bm.getBatchData(),
+                new TypeReference<List<Map<String, Object>>>() {});
+            for (Map<String, Object> data : oldBatchData) {
+              Integer batchId = (Integer) data.get("batchId");
+              Integer quantity = (Integer) data.get("quantity");
+              rawMaterialBatchRepository.findById(batchId).ifPresent(batch -> {
+                batch.setRemainQuantity(batch.getRemainQuantity() + quantity);
+                rawMaterialBatchRepository.save(batch);
+              });
+            }
+          } catch (Exception e) {
+            // Ignore malformed or missing JSON
+          }
+        }
+      }
+      // Clear existing records to ensure consolidation of new request via orphanRemoval
+      bouquet.getBouquetsMaterials().clear();
+    }
+
     if (materials == null || materials.isEmpty()) {
       return;
     }
-    int totalRequestMaterialQuantities = 0;
-    int totalRawMaterialQuantities = 0;
-    String rawMaterialName = null;
-    for (MaterialReq materialRequest : materials) {
-      // Check if raw material exists
-      Optional<BouquetsMaterial> existing = bouquet.getBouquetsMaterials().stream()
-          .filter(bm -> bm.getRawMaterial().getId() == materialRequest.getId())
-          .findFirst();
-      RawMaterial rawMaterial = rawMaterialrepository.findById(materialRequest.getId())
-          .orElseThrow(() -> new BadHttpRequestException("Raw material not found"));
-      totalRequestMaterialQuantities = materialRequest.getQuantity();
-      totalRawMaterialQuantities = rawMaterial.getTotalQuantity();
-      if (rawMaterialName == null) {
-        rawMaterialName = rawMaterial.getName();
-      }
-      if (totalRequestMaterialQuantities <= 0) {
-        throw new BadHttpRequestException("Material quantity must be greater than 0");
+
+    // 2. Consolidation: Group by rawMaterialId (MaterialReq.id)
+    Map<Integer, List<MaterialReq>> grouped = materials.stream()
+        .collect(Collectors.groupingBy(MaterialReq::getId));
+
+    for (Map.Entry<Integer, List<MaterialReq>> entry : grouped.entrySet()) {
+      int rawMaterialId = entry.getKey();
+      List<MaterialReq> batchReqs = entry.getValue();
+
+      RawMaterial rawMaterial = rawMaterialrepository.findById(rawMaterialId)
+          .orElseThrow(() -> new BadHttpRequestException("Raw material not found: " + rawMaterialId));
+
+      int totalMaterialQuantity = 0;
+      List<Map<String, Object>> newBatchDataList = new ArrayList<>();
+
+      for (MaterialReq req : batchReqs) {
+        if (req.getQuantity() <= 0) continue;
+        if (req.getBatchId() == null) {
+          throw new BadHttpRequestException("Batch ID is required for material consolidation");
+        }
+
+        RawMaterialBatches batch = rawMaterialBatchRepository.findById(req.getBatchId())
+            .orElseThrow(() -> new BadHttpRequestException("Batch not found: " + req.getBatchId()));
+
+        if (batch.getRemainQuantity() < req.getQuantity()) {
+          throw new BadHttpRequestException("Not enough stock in batch " + req.getBatchId()
+              + " for material " + rawMaterial.getName() + " (available: " + batch.getRemainQuantity() + ")");
+        }
+
+        // 3. Inventory Logic: Deduct stock from specific batch provided by Frontend
+        batch.setRemainQuantity(batch.getRemainQuantity() - req.getQuantity());
+        rawMaterialBatchRepository.save(batch);
+
+        totalMaterialQuantity += req.getQuantity();
+        Map<String, Object> data = new HashMap<>();
+        data.put("batchId", req.getBatchId());
+        data.put("quantity", req.getQuantity());
+        newBatchDataList.add(data);
       }
 
-      if (totalRawMaterialQuantities < totalRequestMaterialQuantities) {
-        throw new BadHttpRequestException("Not enough raw material in stock: " + rawMaterialName
-            + " (available: " + totalRawMaterialQuantities + ", required: " + totalRequestMaterialQuantities + ")");
-      }
-
-      if (existing.isPresent()) {
-        existing.get().setQuantity(materialRequest.getQuantity());
-      } else {
-        BouquetsMaterial bouquetMaterial = new BouquetsMaterial();
-        bouquetMaterial.setRawMaterial(rawMaterial);
-        bouquetMaterial.setQuantity(materialRequest.getQuantity());
-        bouquetMaterial.setBouquet(bouquet);
-        bouquet.getBouquetsMaterials().add(bouquetMaterial);
+      if (totalMaterialQuantity > 0) {
+        try {
+          BouquetsMaterial bm = new BouquetsMaterial();
+          bm.setRawMaterial(rawMaterial);
+          bm.setQuantity(totalMaterialQuantity); // Summation of all batches for this material
+          bm.setBatchData(objectMapper.writeValueAsString(newBatchDataList)); // JSON Serialization of details
+          bm.setBouquet(bouquet);
+          bouquet.getBouquetsMaterials().add(bm); // Single Record per unique rawMaterialId
+        } catch (JsonProcessingException e) {
+          throw new RuntimeException("Failed to serialize batch data", e);
+        }
       }
     }
-
   }
 
   private String validateBouquetRequestUpdate(UpdateBouquetRequest bouquetRequest, Bouquet bouquet) {
