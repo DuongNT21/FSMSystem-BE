@@ -318,14 +318,19 @@ public class BouquetService implements IBouquetService {
     List<Bouquet> bouquets = repository.findAll();
     for (Bouquet bouquet : bouquets) {
       boolean isOutOfStock = false;
-      for (BouquetsMaterial bm : bouquet.getBouquetsMaterials()) {
-        RawMaterial rawMaterial = bm.getRawMaterial();
-        int requiredQuantity = bm.getQuantity();
-        if (rawMaterial.getTotalQuantity() < requiredQuantity) {
-          isOutOfStock = true;
-          break;
+      if (!bouquet.getBouquetsMaterials().isEmpty()) {
+        for (BouquetsMaterial bm : bouquet.getBouquetsMaterials()) {
+          RawMaterial rawMaterial = bm.getRawMaterial();
+          int requiredQuantity = bm.getQuantity();
+          if (rawMaterial.getTotalQuantity() < requiredQuantity) {
+            isOutOfStock = true;
+            break;
+          }
         }
+      } else {
+        isOutOfStock = true;
       }
+
       bouquet.setStatus(isOutOfStock ? 0 : 1);
       try {
         repository.save(bouquet);

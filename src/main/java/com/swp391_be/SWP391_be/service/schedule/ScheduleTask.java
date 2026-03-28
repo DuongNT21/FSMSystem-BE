@@ -52,7 +52,7 @@ public class ScheduleTask {
   @Scheduled(fixedRate = 60000)
   @Transactional(rollbackFor = RuntimeException.class)
   public void cancelStaleOrders() {
-    LocalDateTime cutoff = LocalDateTime.now().minusMinutes(30);
+    LocalDateTime cutoff = LocalDateTime.now().minusMinutes(5);
     List<Order> staleOrders = orderRepository.findPendingOrders(
         EOrderStatus.Pending, cutoff);
     for (Order order : staleOrders) {

@@ -146,7 +146,7 @@ public class UserService implements IUserService {
     @Override
     public void updateUserStatus(int id, boolean isActive) {
         User user = userRepository.findById(id).orElseThrow(() -> new NotFoundException("User not found"));
-        if (user.getRole().getRoleName().equalsIgnoreCase("Admin")|| user.getRole().getRoleName().equalsIgnoreCase("Staff")) {
+        if (user.getRole().getRoleName().equalsIgnoreCase("Admin")) {
             throw new BadHttpRequestException("Cannot update status of admin user");
         }
         user.setIsActive(isActive);
@@ -180,11 +180,6 @@ public class UserService implements IUserService {
         profile.setAvatar(request.getAvatar());
         profile.setCreatedAt(now);
         userProfileRepository.save(profile);
-
-        Employee employee = new Employee();
-        employee.setUser(user);
-        employee.setRole(staffRole);
-        employeeRepository.save(employee);
 
         RegisterResponse response = new RegisterResponse();
         response.setId(user.getId());
