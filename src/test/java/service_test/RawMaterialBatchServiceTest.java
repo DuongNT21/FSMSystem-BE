@@ -41,7 +41,7 @@ class RawMaterialBatchServiceTest {
         CreateRawMaterialBatchRequest request = new CreateRawMaterialBatchRequest();
         request.setRawMaterialId(1);
         request.setOriginalQuantity(10);
-        request.setImportPrice(100.0);
+        request.setImportPrice(100.0f);
         request.setImportDate(new Date());
         request.setExpireDate(new Date(System.currentTimeMillis() + 1000000));
 
@@ -126,7 +126,7 @@ class RawMaterialBatchServiceTest {
         when(batchRepository.findById(1)).thenReturn(Optional.of(batch));
 
         UpdateBatchRequest request = new UpdateBatchRequest();
-        request.setImportPrice(-10.0);
+        request.setImportPrice(-10.0f);
 
         RuntimeException ex = assertThrows(RuntimeException.class,
                 () -> service.updateBatch(1, request));
