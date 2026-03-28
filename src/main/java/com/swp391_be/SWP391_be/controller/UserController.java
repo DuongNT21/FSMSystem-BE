@@ -31,7 +31,7 @@ public class UserController {
     }
 
     @GetMapping("users")
-    @PreAuthorize("hasAuthority('Admin')")
+    @PreAuthorize("hasAnyAuthority('Admin', 'Staff')")
     public ResponseEntity<BaseResponse<PageResponse<GetUserResponse>>> getUsers(
             GetUserCriteriaRequest criteria,
             @RequestParam(defaultValue = "0") int page,
@@ -46,11 +46,43 @@ public class UserController {
     }
 
     @PutMapping( "users/{id}/status")
-    @PreAuthorize("hasAuthority('Admin')")
+    @PreAuthorize("hasAnyAuthority('Admin', 'Staff')")
     public ResponseEntity<BaseResponse<Void>> updateUserStatus(@PathVariable int id, @RequestParam boolean isActive) {
         iUserService.updateUserStatus(id, isActive);
         BaseResponse<Void> response = new BaseResponse<>();
         response.setMessage("Update user status successfully");
+        response.setStatus(HttpStatus.OK.value());
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("users/staff")
+    @PreAuthorize("hasAuthority('Admin')")
+    public ResponseEntity<BaseResponse<RegisterResponse>> createStaff(@RequestBody RegisterRequest request) {
+        RegisterResponse data = iUserService.createStaff(request);
+        BaseResponse<RegisterResponse> response = new BaseResponse<>();
+        response.setData(data);
+        response.setMessage("Staff created successfully");
+        response.setStatus(HttpStatus.CREATED.value());
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PutMapping("users/staff/{id}")
+    @PreAuthorize("hasAuthority('Admin')")
+    public ResponseEntity<BaseResponse<RegisterResponse>> updateStaff(@PathVariable int id, @RequestBody RegisterRequest request) {
+        RegisterResponse data = iUserService.updateStaff(id, request);
+        BaseResponse<RegisterResponse> response = new BaseResponse<>();
+        response.setData(data);
+        response.setMessage("Staff updated successfully");
+        response.setStatus(HttpStatus.OK.value());
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("users/staff/{id}")
+    @PreAuthorize("hasAuthority('Admin')")
+    public ResponseEntity<BaseResponse<Void>> deleteStaff(@PathVariable int id) {
+        iUserService.deleteStaff(id);
+        BaseResponse<Void> response = new BaseResponse<>();
+        response.setMessage("Staff deleted successfully");
         response.setStatus(HttpStatus.OK.value());
         return ResponseEntity.ok(response);
     }

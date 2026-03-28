@@ -10,4 +10,7 @@ public interface IUserService {
     RegisterResponse register(RegisterRequest registerRequest);
     PageResponse<GetUserResponse> getUsers(GetUserCriteriaRequest criteria, int page, int size, String sort);
     void updateUserStatus(int id, boolean isActive);
+    RegisterResponse createStaff(RegisterRequest request);
+    RegisterResponse updateStaff(int id, RegisterRequest request);
+    void deleteStaff(int id);
 }
